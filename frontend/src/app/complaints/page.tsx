@@ -9,6 +9,13 @@ import {
   Wrench,
   XCircle,
   AlertCircle,
+  Shield,
+  Home,
+  Tag,
+  ChevronRight,
+  ArrowRight,
+  X,
+  Sparkles,
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { api } from '@/lib/api';
@@ -16,15 +23,15 @@ import { ComplaintItem, ComplaintCategory, ComplaintPriority, ComplaintStatus } 
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Badge } from '@/components/ui/Badge';
 
-const STATUS_CONFIG: Record<ComplaintStatus, { variant: 'success' | 'warning' | 'error' | 'info' | 'primary' | 'neutral'; icon: React.ElementType; label: string; color: string }> = {
-  Submitted: { variant: 'warning', icon: Clock, label: 'Submitted', color: 'text-[#B80E00]' },
-  'Under Review': { variant: 'info', icon: Clock, label: 'Under Review', color: 'text-[#021861]' },
-  'In Progress': { variant: 'primary', icon: Wrench, label: 'In Progress', color: 'text-[#021861]' },
-  Resolved: { variant: 'success', icon: CheckCircle2, label: 'Resolved', color: 'text-[#3F51B5]' },
-  Rejected: { variant: 'error', icon: XCircle, label: 'Rejected', color: 'text-[#DC143C]' },
+const STATUS_CONFIG: Record<ComplaintStatus, { variant: 'success' | 'warning' | 'error' | 'info' | 'primary' | 'neutral'; icon: React.ElementType; label: string }> = {
+  Submitted: { variant: 'warning', icon: Clock, label: 'Submitted' },
+  'Under Review': { variant: 'info', icon: Clock, label: 'Under Review' },
+  'In Progress': { variant: 'primary', icon: Wrench, label: 'In Progress' },
+  Resolved: { variant: 'success', icon: CheckCircle2, label: 'Resolved' },
+  Rejected: { variant: 'error', icon: XCircle, label: 'Rejected' },
 };
 
-type BadgeVariant = 'success' | 'warning' | 'error' | 'info' | 'primary' | 'neutral' | 'accent';
+const STAGES: ComplaintStatus[] = ['Submitted', 'Under Review', 'In Progress', 'Resolved'];
 
 export default function ComplaintsPage() {
   const { currentUser } = useApp();
@@ -88,16 +95,15 @@ export default function ComplaintsPage() {
     try {
       setSubmitting(true);
       setError(null);
-      setSuccessItem(null);
 
       const created = await api.submitComplaint({
-        title: title.trim(),
-        description: description.trim(),
         category,
         priority,
+        title: title.trim(),
+        description: description.trim(),
         room_number: roomNumber.trim(),
         block_name: blockName.trim(),
-        student_name: currentUser?.full_name || 'Student Resident',
+        student_name: currentUser?.full_name || 'Resident Student',
       });
 
       setSuccessItem(created);
@@ -106,7 +112,7 @@ export default function ComplaintsPage() {
       setShowForm(false);
       loadComplaints();
     } catch (err: any) {
-      setError(err.message || 'Failed to submit complaint.');
+      setError(err.message || 'Failed to register maintenance complaint.');
     } finally {
       setSubmitting(false);
     }
@@ -115,336 +121,367 @@ export default function ComplaintsPage() {
   const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!lookupCode.trim()) return;
+
     try {
       setLookupError(null);
       setLookupResult(null);
-      const item = complaints.find(
-        (c) => c.tracking_id.toLowerCase() === lookupCode.trim().toLowerCase()
-      );
-      if (item) {
-        setLookupResult(item);
-      } else {
-        setLookupError(`No record found for tracking ID "${lookupCode.trim().toUpperCase()}".`);
-      }
+      const res = await api.getComplaint(lookupCode.trim());
+      setLookupResult(res);
     } catch (err: any) {
-      setError(err.message || 'Lookup failed.');
+      setLookupError(err.message || `No grievance matching tracking code "${lookupCode}".`);
     }
   };
 
-  const getStatusBadge = (status: ComplaintStatus) => {
-    const config = STATUS_CONFIG[status];
-    const Icon = config.icon;
-    return (
-      <Badge variant={config.variant} className="flex items-center space-x-1.5">
-        <Icon className="h-3 w-3" />
-        <span className={config.color}>{config.label}</span>
-      </Badge>
-    );
-  };
-
-  const getPriorityColor = (priority: ComplaintPriority) => {
-    switch (priority) {
-      case 'Urgent':
-        return 'text-[#DC143C] font-semibold';
-      case 'High':
-        return 'text-[#B80E00] font-semibold';
-      case 'Medium':
-        return 'text-[#B80E00] font-semibold';
-      default:
-        return 'text-[#3F51B5] font-semibold';
+  const getStageIndex = (status: ComplaintStatus) => {
+    switch (status) {
+      case 'Submitted': return 0;
+      case 'Under Review': return 1;
+      case 'In Progress': return 2;
+      case 'Resolved': return 3;
+      default: return 0;
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Page Title & Action */}
-      <div className="rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div className="flex flex-col lg:flex-shrink-0">
-          <div className="flex items-center space-x-2">
-            <AlertCircle className="h-4 w-4 text-[#021861]" />
-            <h1 className="text-base font-semibold tracking-tight text-[#101C3A]">
-              Hostel Maintenance &amp; Grievance Desk
+    <div className="mx-auto max-w-4xl space-y-8 animate-fade-in pb-16">
+      {/* Header Banner */}
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-card">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-rose-500/10 to-transparent blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-1.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-rose-600">
+              Student Grievance Desk
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 poppins">
+              Maintenance Complaints &amp; Work Orders
             </h1>
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-xl">
+              File repairs for plumbing, electrical, internet, and room fixtures. Track live warden triage and resolution status.
+            </p>
           </div>
-          <p className="mt-1 text-xs text-[#647794] leading-relaxed">
-            Submit, track, and monitor residential repair work orders with verified audit IDs.
-          </p>
-        </div>
-        <div className="flex items-center space-x-2 shrink-0 lg:ml-4">
+
           <button
             onClick={() => setShowForm(!showForm)}
-            className="inline-flex items-center space-x-1.5 rounded-lg bg-[#021861] px-3.5 py-2 text-xs font-medium text-white hover:bg-[#3F51B5] transition-smooth"
+            className="btn-press inline-flex items-center space-x-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-slate-800 transition-colors shrink-0 self-start sm:self-auto"
           >
-            <PlusCircle className="h-3.5 w-3.5" />
-            <span>{showForm ? 'Cancel Submission' : 'Log New Complaint'}</span>
+            <PlusCircle className="h-4 w-4" />
+            <span>{showForm ? 'Close Form' : 'File New Grievance'}</span>
           </button>
         </div>
       </div>
 
-      {/* Backend Confirmed Submission Alert */}
+      {/* Success Notification */}
       {successItem && (
-        <div className="rounded-lg border border-[#3F51B5]/40 bg-[#EAF4FF] p-4 text-xs">
-          <div className="flex items-center space-x-2 font-semibold text-[#3F51B5]">
-            <CheckCircle2 className="h-4 w-4" />
-            <span>Complaint Successfully Confirmed by Database</span>
-          </div>
-          <div className="mt-2 text-[#101C3A]">
-            Your tracking ID is{' '}
-            <strong className="font-mono text-sm text-[#021861]">
-              {successItem.tracking_id}
-            </strong>
-            . Use this code anytime to check work order progress or communicate with estate supervisors.
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <div className="rounded-lg border border-[#DC143C]/30 bg-[#FDF2F2] p-4 text-xs text-[#DC143C]">
-          <div className="font-semibold">Notice</div>
-          <p className="mt-0.5">{error}</p>
-        </div>
-      )}
-
-      {/* Complaint Submission Form */}
-      {showForm && (
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] p-6 space-y-5 shadow-card"
-        >
-          <div className="border-b border-[#DCE6F2] pb-3 text-[10px] font-semibold uppercase tracking-wider text-[#101C3A]">
-            New Grievance Work Order
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5 shadow-card animate-slide-down flex items-start justify-between">
+          <div className="flex items-start space-x-3">
+            <CheckCircle2 className="h-5 w-5 text-emerald-600 mt-0.5" />
             <div>
-              <label className="block text-sm font-medium text-[#647794]">
-                Grievance Category
-              </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value as ComplaintCategory)}
-                className="mt-1 w-full rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] px-3 py-2 text-sm text-[#101C3A] focus:border-[#3F51B5] focus:outline-none"
-              >
-                <option value="Plumbing">Plumbing (Taps, Drainage, Flush)</option>
-                <option value="Electrical">Electrical (Fans, Switches, Regulators)</option>
-                <option value="Carpentry">Carpentry (Bed, Desk, Cupboard Lock)</option>
-                <option value="Cleanliness">Cleanliness (Corridor, Washroom Sanitation)</option>
-                <option value="Mess">Mess (Dining Hall Quality, Food Service)</option>
-                <option value="Internet">Internet (LAN Port, Wi-Fi Coverage)</option>
-                <option value="Other">Other / General Maintenance</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-[#647794]">
-                Priority Level
-              </label>
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value as ComplaintPriority)}
-                className="mt-1 w-full rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] px-3 py-2 text-sm text-[#101C3A] focus:border-[#3F51B5] focus:outline-none"
-              >
-                <option value="Low">Low (General routine maintenance)</option>
-                <option value="Medium">Medium (Affecting daily convenience)</option>
-                <option value="High">High (Immediate attention needed)</option>
-                <option value="Urgent">Urgent (Safety hazard, sparking, flooding)</option>
-              </select>
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-[#647794]">
-                Room Number
-              </label>
-              <input
-                type="text"
-                value={roomNumber}
-                onChange={(e) => setRoomNumber(e.target.value)}
-                required
-                className="mt-1 w-full rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] px-3 py-2 text-sm text-[#101C3A] focus:border-[#3F51B5] focus:outline-none"
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-[#647794]">
-                Hostel Block Name
-              </label>
-              <input
-                type="text"
-                value={blockName}
-                onChange={(e) => setBlockName(e.target.value)}
-                required
-                className="mt-1 w-full rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] px-3 py-2 text-sm text-[#101C3A] focus:border-[#3F51B5] focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-[#647794]">
-              Issue Title (Concise Subject)
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Washroom faucet dripping continuously"
-              required
-              className="mt-1 w-full rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] px-3 py-2 text-sm text-[#101C3A] focus:border-[#3F51B5] focus:outline-none"
-            />
-          </div>
-
-          <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-[#647794]">
-              Detailed Description &amp; Location Specifications
-            </label>
-            <textarea
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Provide exact details to assist maintenance technicians in diagnosing the issue..."
-              required
-              className="mt-1 w-full rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] px-3 py-2 text-sm text-[#101C3A] focus:border-[#3F51B5] focus:outline-none"
-            />
-          </div>
-
-          <div className="sm:col-span-2 flex justify-end space-x-2 pt-2 border-t border-[#DCE6F2]">
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] px-4 py-2 text-xs font-medium text-[#101C3A] hover:bg-[#F5F7FF] transition-smooth"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="rounded-lg bg-[#021861] px-4 py-2 text-xs font-medium text-white hover:bg-[#3F51B5] disabled:opacity-50 transition-smooth"
-            >
-              {submitting ? 'Verifying with DB...' : 'Submit & Generate Tracking ID'}
-            </button>
-          </div>
-        </form>
-      )}
-
-      {/* Quick Tracking Code Lookup Box */}
-      <div className="rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] p-5">
-        <form onSubmit={handleLookup} className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-[#647794]">
-              Quick Tracking ID Verification:
-            </div>
-            <div className="relative mt-1">
-              <Search className="pointer-events-none absolute left-3 top-2.5 h-3.5 w-3.5 text-[#647794]" />
-              <input
-                type="text"
-                value={lookupCode}
-                onChange={(e) => setLookupCode(e.target.value)}
-                placeholder="Enter tracking code (e.g. CMP-2026-0041)..."
-                className="w-full rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] py-1.5 pl-9 pr-3 text-sm text-[#101C3A] focus:border-[#3F51B5] focus:outline-none"
-              />
+              <h3 className="text-sm font-bold text-emerald-950">
+                Complaint Registered Successfully!
+              </h3>
+              <p className="text-xs text-emerald-800 mt-1">
+                Your tracking ID is <strong className="font-mono">{successItem.tracking_id}</strong>. Assigned for warden review.
+              </p>
             </div>
           </div>
           <button
-            type="submit"
-            className="rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] px-4 py-1.5 text-xs font-medium text-[#101C3A] hover:bg-[#F5F7FF] sm:self-end transition-smooth"
+            onClick={() => setSuccessItem(null)}
+            className="text-emerald-700 hover:text-emerald-900"
           >
-            Verify Status
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Quick Tracking ID Lookup Bar */}
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-card">
+        <form onSubmit={handleLookup} className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -mt-2 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              value={lookupCode}
+              onChange={(e) => setLookupCode(e.target.value)}
+              placeholder="Track any complaint by tracking ID (e.g. CMP-2026-0041)…"
+              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none"
+            />
+          </div>
+          <button
+            type="submit"
+            className="btn-press rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-slate-800 transition-colors"
+          >
+            Track Status
           </button>
         </form>
 
         {lookupError && (
-          <div className="mt-2 text-xs text-[#DC143C]">{lookupError}</div>
+          <p className="mt-2 text-xs text-rose-500 font-medium">{lookupError}</p>
         )}
 
         {lookupResult && (
-          <div className="mt-3 rounded-lg border border-[#DCE6F2] bg-[#FDF2F2]/40 p-3 text-xs space-y-1.5">
+          <div className="mt-4 p-4 rounded-xl border border-indigo-100 bg-indigo-50/40 space-y-2 animate-fade-in">
             <div className="flex items-center justify-between">
-              <span className="font-mono font-semibold text-[#101C3A]">
-                {lookupResult.tracking_id}
-              </span>
-              <div>{getStatusBadge(lookupResult.status)}</div>
+              <span className="font-mono text-xs font-bold text-indigo-900">{lookupResult.tracking_id}</span>
+              <Badge variant={STATUS_CONFIG[lookupResult.status]?.variant || 'neutral'} dot>
+                {lookupResult.status}
+              </Badge>
             </div>
-            <div className="font-medium text-[#101C3A]">{lookupResult.title}</div>
-            <div className="text-[10px] text-[#647794]">{lookupResult.description}</div>
+            <div className="text-xs font-semibold text-slate-800">{lookupResult.title}</div>
+            <p className="text-[11px] text-slate-600">{lookupResult.description}</p>
             {lookupResult.admin_notes && (
-              <div className="mt-2 border-t border-[#DCE6F2] pt-1.5 text-[10px]">
-                <strong className="text-[#021861] font-semibold">Admin Remarks:</strong>{' '}
-                <span className="text-[#101C3A]">{lookupResult.admin_notes}</span>
+              <div className="mt-2 text-[11px] text-slate-500 bg-white p-2 rounded-lg border border-indigo-100">
+                <strong>Warden Note:</strong> {lookupResult.admin_notes}
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* Complaints Table */}
-      <div className="rounded-lg border border-[#DCE6F2] bg-[#FFFFFF]">
-        <div className="border-b border-[#DCE6F2] px-5 py-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[#101C3A]">
-            Logged Complaints ({complaints.length})
-          </h2>
-        </div>
+      {/* Submission Form Card */}
+      {showForm && (
+        <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-panel animate-slide-down space-y-6">
+          <div className="border-b border-slate-100 pb-4">
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight poppins">
+              Submit Maintenance Request
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Please provide accurate room details and a descriptive title for timely resolution.
+            </p>
+          </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="border-b border-[#DCE6F2] bg-[#EAF4FF]/50 text-[10px] font-semibold uppercase text-[#647794]">
-              <tr>
-                <th className="px-4 py-3">Tracking ID</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Title &amp; Location</th>
-                <th className="px-4 py-3">Priority</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Resolution Remarks</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#DCE6F2]">
-              {complaints.length > 0 ? (
-                complaints.map((item) => (
-                  <tr key={item.id} className="hover:bg-[#F5F7FF] align-top">
-                    <td className="px-4 py-3 font-mono font-medium text-[#101C3A] whitespace-nowrap">
-                      {item.tracking_id}
-                    </td>
-                    <td className="px-4 py-3 text-[#647794] whitespace-nowrap text-[10px]">
-                      {item.created_at.slice(0, 10)}
-                    </td>
-                    <td className="px-4 py-3 text-[#647794] whitespace-nowrap">
-                      {item.category}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-[#101C3A]">{item.title}</div>
-                      <div className="text-[10px] text-[#647794]">
-                        {item.room_number}, {item.block_name}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={getPriorityColor(item.priority)}>{item.priority}</span>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {getStatusBadge(item.status)}
-                    </td>
-                    <td className="px-4 py-3 text-[10px] text-[#101C3A] max-w-[240px]">
-                      {item.admin_notes || (
-                        <span className="text-[#647794] italic">Pending review</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="p-6">
-                    <EmptyState
-                      icon={Wrench}
-                      title="No complaints currently logged"
-                      description="You have no active maintenance tickets or repair grievances registered under this student profile."
-                      actionLabel="Log New Complaint"
-                      onAction={() => setShowForm(true)}
-                      accent="crimson"
-                    />
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          {error && (
+            <div className="p-3.5 rounded-xl border border-rose-200 bg-rose-50 text-xs text-rose-700">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                  Category
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as ComplaintCategory)}
+                  className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-xs text-slate-900 focus:border-indigo-600 focus:outline-none"
+                >
+                  <option value="Plumbing">Plumbing</option>
+                  <option value="Electrical">Electrical</option>
+                  <option value="Internet">Internet / LAN</option>
+                  <option value="Furniture">Furniture</option>
+                  <option value="Cleanliness">Cleanliness &amp; Hygiene</option>
+                  <option value="Other">Other Issues</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                  Priority
+                </label>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value as ComplaintPriority)}
+                  className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-xs text-slate-900 focus:border-indigo-600 focus:outline-none"
+                >
+                  <option value="Low">Low Priority</option>
+                  <option value="Medium">Medium Priority</option>
+                  <option value="High">High Priority</option>
+                  <option value="Urgent">Urgent Priority</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                  Room Number
+                </label>
+                <input
+                  type="text"
+                  value={roomNumber}
+                  onChange={(e) => setRoomNumber(e.target.value)}
+                  placeholder="e.g. B-304"
+                  className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-xs text-slate-900 focus:border-indigo-600 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                  Hostel Block
+                </label>
+                <input
+                  type="text"
+                  value={blockName}
+                  onChange={(e) => setBlockName(e.target.value)}
+                  placeholder="e.g. Block B (Aryabhatta Hall)"
+                  className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-xs text-slate-900 focus:border-indigo-600 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                Issue Summary Title
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Bathroom tap leaking continuously"
+                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-xs text-slate-900 focus:border-indigo-600 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                Detailed Description (15+ chars)
+              </label>
+              <textarea
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe the exact location and severity of the issue to help technicians resolve it quickly…"
+                className="w-full rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-900 focus:border-indigo-600 focus:outline-none"
+              />
+            </div>
+
+            <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="btn-press rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="btn-press rounded-xl bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 disabled:opacity-50 transition-colors"
+              >
+                {submitting ? 'Submitting…' : 'Submit Grievance'}
+              </button>
+            </div>
+          </form>
         </div>
+      )}
+
+      {/* Complaints List */}
+      <div className="space-y-4">
+        <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+          My Active &amp; Past Work Orders ({complaints.length})
+        </h2>
+
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2].map((i) => (
+              <div key={i} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-card space-y-3 animate-pulse">
+                <div className="h-4 w-40 bg-slate-200 rounded" />
+                <div className="h-3 w-3/4 bg-slate-100 rounded" />
+              </div>
+            ))}
+          </div>
+        ) : complaints.length > 0 ? (
+          complaints.map((item) => {
+            const currentStageIdx = getStageIndex(item.status);
+            const isRejected = item.status === 'Rejected';
+            return (
+              <div
+                key={item.id}
+                className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-card hover-lift transition-all space-y-4"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                  <div className="flex items-center space-x-2.5">
+                    <span className="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-md px-2 py-0.5">
+                      {item.tracking_id}
+                    </span>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-700">
+                      {item.category}
+                    </span>
+                    <Badge variant={item.priority === 'Urgent' || item.priority === 'High' ? 'error' : 'neutral'}>
+                      {item.priority}
+                    </Badge>
+                  </div>
+
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    {item.created_at.slice(0, 10)}
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+                    {item.title}
+                  </h3>
+                  <p className="mt-1 text-xs text-slate-600 leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+
+                {/* Tracking Timeline Stepper */}
+                {!isRejected && (
+                  <div className="pt-2">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 mb-2">
+                      <span>Status Progression</span>
+                      <span className="text-indigo-600">{item.status}</span>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-2">
+                      {STAGES.map((stg, sIdx) => {
+                        const isCompleted = sIdx <= currentStageIdx;
+                        const isCurrent = sIdx === currentStageIdx;
+                        return (
+                          <div key={stg} className="text-center">
+                            <div
+                              className={`h-1.5 rounded-full transition-all ${
+                                isCompleted ? 'bg-indigo-600' : 'bg-slate-100'
+                              }`}
+                            />
+                            <span
+                              className={`text-[9px] mt-1 block truncate ${
+                                isCurrent
+                                  ? 'font-bold text-indigo-700'
+                                  : isCompleted
+                                  ? 'font-medium text-slate-600'
+                                  : 'text-slate-300'
+                              }`}
+                            >
+                              {stg}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {item.admin_notes && (
+                  <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-3 text-xs text-slate-700">
+                    <strong className="text-slate-900 font-semibold">Warden Remarks:</strong> {item.admin_notes}
+                  </div>
+                )}
+
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                  <div className="flex items-center space-x-1.5">
+                    <Home className="h-3.5 w-3.5 text-slate-400" />
+                    <span>{item.room_number} &bull; {item.block_name}</span>
+                  </div>
+                  <Badge variant={STATUS_CONFIG[item.status]?.variant || 'neutral'} dot>
+                    {item.status}
+                  </Badge>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <EmptyState
+            icon={AlertCircle}
+            title="No grievances submitted yet"
+            description="Have a plumbing, electrical, or Wi-Fi issue in your hostel room? Click below to file a tracked request."
+            actionLabel="File First Grievance"
+            onAction={() => setShowForm(true)}
+          />
+        )}
       </div>
     </div>
   );

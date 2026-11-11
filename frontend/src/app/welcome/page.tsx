@@ -3,29 +3,56 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
-import { Building2, Bot, UtensilsCrossed, AlertCircle, Bell, ArrowRight } from 'lucide-react';
+import {
+  Building2,
+  Bot,
+  UtensilsCrossed,
+  AlertCircle,
+  Bell,
+  ArrowRight,
+  ShieldCheck,
+  Sparkles,
+  ChevronRight,
+  CheckCircle2,
+  Lock,
+} from 'lucide-react';
 
 const FEATURES = [
   {
     icon: Bot,
-    title: 'AI Hostel Assistant',
-    desc: 'Ask questions about hostel information grounded in approved documents.',
+    title: 'AI Policy Assistant',
+    desc: 'Instant, authoritative answers to hostel regulations grounded exclusively in university handbooks.',
+    gradient: 'from-blue-500/20 to-indigo-500/20',
+    iconColor: 'text-indigo-400',
   },
   {
     icon: UtensilsCrossed,
-    title: 'Smart Mess',
-    desc: 'Access the weekly mess menu and dining schedules.',
+    title: 'Smart Mess Roster',
+    desc: 'Real-time 7-day dining schedule with dietary filters, calorie breakdowns, and committee approvals.',
+    gradient: 'from-emerald-500/20 to-teal-500/20',
+    iconColor: 'text-emerald-400',
   },
   {
     icon: AlertCircle,
-    title: 'Digital Complaints',
-    desc: 'Submit and track hostel maintenance complaints.',
+    title: 'Digital Grievances',
+    desc: 'Submit and track hostel maintenance work orders with verifiable tracking IDs and progress stages.',
+    gradient: 'from-rose-500/20 to-amber-500/20',
+    iconColor: 'text-rose-400',
   },
   {
     icon: Bell,
-    title: 'Instant Announcements',
-    desc: 'View official hostel notices and circulars.',
+    title: 'Instant Circulars',
+    desc: 'Official wardens council circulars, urgent emergency alerts, and institutional notices in real-time.',
+    gradient: 'from-purple-500/20 to-pink-500/20',
+    iconColor: 'text-purple-400',
   },
+];
+
+const METRICS = [
+  { label: 'Campus Hostels', value: '7 Hostels' },
+  { label: 'Policy Retrieval', value: '100% Grounded' },
+  { label: 'Resolution Desk', value: '24/7 Tracking' },
+  { label: 'Institutional Domain', value: '@klu.ac.in' },
 ];
 
 export default function WelcomePage() {
@@ -42,12 +69,12 @@ export default function WelcomePage() {
 
   if (isLoadingAuth) {
     return (
-      <div className="min-h-screen bg-[#021861] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#070B19] flex items-center justify-center px-4">
         <div className="flex flex-col items-center space-y-3 text-center">
-          <div className="w-10 h-10 rounded-lg bg-indigo flex items-center justify-center">
-            <Building2 className="h-5 w-5 text-white" />
+          <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-glow animate-pulse">
+            <Building2 className="h-6 w-6 text-white" />
           </div>
-          <p className="text-xs text-baby-blue">Verifying University Session\u2026</p>
+          <p className="text-xs text-slate-400">Verifying session…</p>
         </div>
       </div>
     );
@@ -56,92 +83,138 @@ export default function WelcomePage() {
   if (isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-[#021861] text-white overflow-y-auto px-4 pt-8 md:pt-12 pb-8 box-border">
-      {/* Main welcome content — natural document flow, no clipping */}
-      <main className="relative z-10 flex flex-col items-center gap-6 w-full max-w-2xl mx-auto text-center pt-4 pb-4">
-        {/* Top Branding */}
-        <div className="inline-flex items-center space-x-3 animate-scale-in delay-100" style={{ animationDelay: '100ms' }}>
-          <div className="w-14 h-14 rounded-xl bg-[#3F51B5] flex items-center justify-center shadow-glow">
-            <Building2 className="h-7 w-7 text-white" />
+    <div className="min-h-screen bg-[#070B19] text-white relative overflow-hidden flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+      {/* Ambient Lighting Gradients */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[550px] bg-gradient-to-b from-indigo-500/20 via-blue-500/10 to-transparent blur-[140px] pointer-events-none" />
+      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-purple-500/15 blur-[120px] pointer-events-none" />
+      <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-500/15 blur-[120px] pointer-events-none" />
+
+      {/* Top Navigation Bar */}
+      <header className="relative z-20 max-w-7xl mx-auto w-full px-6 py-6 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 text-white shadow-glow">
+            <Building2 className="h-5 w-5" />
           </div>
-          <div className="text-left">
-            <div className="text-[10px] font-semibold tracking-wider text-baby-blue uppercase">
-              HostelIQ AI
+          <div>
+            <div className="text-base font-bold poppins tracking-tight text-white flex items-center gap-2">
+              <span>HostelIQ AI</span>
+              <span className="rounded-full bg-indigo-500/20 border border-indigo-400/30 px-2 py-0.5 text-[10px] font-semibold text-indigo-300">
+                2.0
+              </span>
             </div>
-            <div className="text-xl font-bold poppins tracking-tight">HostelIQ AI</div>
+            <div className="text-[10px] text-slate-400 font-medium tracking-wide uppercase">
+              Kalasalingam University
+            </div>
           </div>
         </div>
 
-        <div className="mt-8 space-y-5">
-          {/* Main heading */}
-          <div className="animate-fade-in-up delay-400" style={{ animationDelay: '400ms' }}>
-            <h1 className="text-[clamp(1.5rem,7vw,3rem)] font-bold tracking-tight leading-[1.25] poppins text-white text-center max-w-[92%] mx-auto">
-              WELCOME TO<br />
-              <span className="text-baby-blue">HOSTELIQ AI</span>
-            </h1>
-          </div>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => router.push('/login')}
+            className="btn-press hidden sm:inline-flex items-center space-x-1.5 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition-all backdrop-blur-sm"
+          >
+            <span>Sign In</span>
+          </button>
+          <button
+            onClick={() => router.push('/login')}
+            className="btn-press inline-flex items-center space-x-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-glow hover:from-indigo-500 hover:to-blue-500 transition-all"
+          >
+            <span>Access Portal</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </header>
 
-          {/* University name */}
-          <div className="animate-fade-in-up delay-800" style={{ animationDelay: '800ms' }}>
-            <h2 className="text-[clamp(0.85rem,3vw,1rem)] font-medium tracking-[0.15em] text-baby-blue uppercase max-w-[92%] mx-auto leading-relaxed">
-              KALASALINGAM ACADEMY OF RESEARCH AND EDUCATION
-            </h2>
-          </div>
-
-          {/* Tagline */}
-          <div className="animate-fade-in-up delay-1000" style={{ animationDelay: '1000ms' }}>
-            <p className="text-[clamp(0.95rem,3.5vw,1.125rem)] text-white/90 leading-relaxed max-w-[92%] mx-auto">
-              Your Hostel Life, Made Smarter.
-            </p>
-          </div>
-
-          {/* GET STARTED button */}
-          <div className="animate-fade-in-up delay-1300" style={{ animationDelay: '1300ms' }}>
-            <button
-              onClick={() => router.push('/login')}
-              className="w-full md:w-auto px-8 py-3.5 rounded-xl bg-white text-[#021861] font-bold text-[clamp(0.85rem,3vw,1rem)] tracking-wide uppercase flex items-center justify-center space-x-2 mx-auto shadow-glow hover:bg-[#3F51B5] hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-baby-blue focus:ring-offset-2 focus:ring-offset-[#021861] group"
-            >
-              Get Started
-              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform text-[#021861]" />
-            </button>
-          </div>
+      {/* Hero Section */}
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center max-w-5xl mx-auto px-6 py-12 text-center">
+        {/* Release Pill */}
+        <div className="inline-flex items-center space-x-2 rounded-full border border-indigo-400/30 bg-indigo-500/10 px-3.5 py-1 text-xs text-indigo-300 shadow-sm backdrop-blur-md mb-6 animate-fade-in">
+          <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+          <span className="font-medium">Intelligent Residential Life Operating System</span>
+          <ChevronRight className="h-3 w-3 text-indigo-400/60" />
         </div>
 
-        {/* Feature section */}
-        <div className="mt-10 animate-fade-in-up delay-1600" style={{ animationDelay: '1600ms' }}>
-          <p className="text-[10px] font-semibold tracking-wider text-baby-blue uppercase mb-6">
-            Smart Hostel Management Platform
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 max-w-md mx-auto">
-            {FEATURES.map((f) => {
-              const Icon = f.icon;
+        {/* Hero Title */}
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight poppins max-w-3xl leading-[1.15] text-white animate-fade-in-up">
+          Smart Hostel Living, <br />
+          <span className="bg-gradient-to-r from-indigo-300 via-blue-200 to-white bg-clip-text text-transparent">
+            Powered by Generative AI.
+          </span>
+        </h1>
+
+        {/* Subtitle */}
+        <p className="mt-5 text-sm sm:text-base md:text-lg text-slate-300 max-w-2xl leading-relaxed animate-fade-in-up delay-100">
+          Grounded policy intelligence, smart dining rosters, and verifiable maintenance tracking for students and wardens at Kalasalingam Academy of Research and Education.
+        </p>
+
+        {/* CTA Buttons */}
+        <div className="mt-8 flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto animate-fade-in-up delay-200">
+          <button
+            onClick={() => router.push('/login')}
+            className="btn-press w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-600 px-7 text-sm font-semibold text-white shadow-glow hover:shadow-indigo-500/40 hover:scale-[1.02] transition-all flex items-center justify-center space-x-2.5 group"
+          >
+            <span>Get Started</span>
+            <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+          </button>
+          <a
+            href="#features"
+            className="btn-press w-full sm:w-auto px-6 py-3.5 rounded-2xl border border-white/10 bg-white/5 text-sm font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition-all backdrop-blur-sm"
+          >
+            Explore Platform Features
+          </a>
+        </div>
+
+        {/* Trust Badges */}
+        <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-3xl pt-8 border-t border-white/10 animate-fade-in-up delay-300">
+          {METRICS.map((metric, i) => (
+            <div key={i} className="text-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+              <div className="text-base font-bold text-white poppins">{metric.value}</div>
+              <div className="text-[11px] text-slate-400 mt-0.5">{metric.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Features Grid */}
+        <div id="features" className="mt-16 w-full max-w-4xl text-left">
+          <div className="text-center mb-8">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Core Capabilities</span>
+            <h2 className="text-2xl font-bold poppins text-white mt-1">Built for Students & Wardens</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {FEATURES.map((feat, idx) => {
+              const Icon = feat.icon;
               return (
                 <div
-                  key={f.title}
-                  className="flex flex-col items-center space-y-2 p-3 rounded-lg border border-[#3F51B5]/20 bg-[#EAF4FF]/10 text-center hover:border-[#3F51B5]/50 transition-colors"
+                  key={idx}
+                  className="group rounded-2xl border border-white/10 bg-white/[0.03] p-6 hover:bg-white/[0.06] hover:border-white/20 transition-all duration-200 hover-lift backdrop-blur-sm"
                 >
-                  <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center text-[#021861]">
-                    <Icon className="h-4.5 w-4.5" />
+                  <div className={`h-11 w-11 rounded-xl bg-gradient-to-tr ${feat.gradient} flex items-center justify-center ${feat.iconColor} border border-white/10 mb-4 group-hover:scale-105 transition-transform`}>
+                    <Icon className="h-5 w-5" />
                   </div>
-                  <div className="text-center space-y-0.5">
-                    <span className="text-xs font-semibold text-white leading-tight">{f.title}</span>
-                    <span className="text-[10px] text-white/80 leading-tight line-clamp-2">
-                      {f.desc}
-                    </span>
-                  </div>
+                  <h3 className="text-base font-semibold text-white tracking-tight">{feat.title}</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-300">
+                    {feat.desc}
+                  </p>
                 </div>
               );
             })}
           </div>
         </div>
-
-        {/* Footer */}
-        <div className="mt-12 animate-fade-in-up delay-1800" style={{ animationDelay: '1800ms' }}>
-          <p className="text-[10px] text-white/60 tracking-wide uppercase">
-            Kalasalingam Academy of Research and Education
-          </p>
-        </div>
       </main>
+
+      {/* Footer */}
+      <footer className="relative z-10 border-t border-white/10 bg-[#070B19]/80 py-6 px-6 text-center backdrop-blur-md">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+          <div>
+            Kalasalingam Academy of Research and Education &bull; Anand Nagar, Krishnankoil
+          </div>
+          <div className="flex items-center space-x-2">
+            <Lock className="h-3 w-3 text-indigo-400" />
+            <span>Strict institutional single sign-on (@klu.ac.in)</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

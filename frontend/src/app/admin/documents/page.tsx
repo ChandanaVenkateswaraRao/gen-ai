@@ -8,11 +8,20 @@ import {
   CheckCircle2,
   FileText,
   RefreshCw,
+  Plus,
+  X,
+  FileUp,
+  Sparkles,
+  ShieldCheck,
+  AlertCircle,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { api } from '@/lib/api';
 import { DocumentMetadata, DocumentChunk } from '@/types';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Badge } from '@/components/ui/Badge';
 
 export default function AdminDocumentsPage() {
   const { currentRole, currentUser } = useApp();
@@ -31,6 +40,7 @@ export default function AdminDocumentsPage() {
   const [inspectDoc, setInspectDoc] = useState<DocumentMetadata | null>(null);
   const [chunks, setChunks] = useState<DocumentChunk[]>([]);
   const [loadingChunks, setLoadingChunks] = useState(false);
+  const [copiedChunkId, setCopiedChunkId] = useState<string | null>(null);
 
   useEffect(() => {
     loadDocuments();
@@ -85,243 +95,284 @@ export default function AdminDocumentsPage() {
       setError(null);
       await api.deleteDocument(doc.id);
       loadDocuments();
-      if (inspectDoc?.id === doc.id) {
-        setInspectDoc(null);
-      }
     } catch (err: any) {
       setError(err.message || 'Failed to delete document.');
     }
   };
 
-  const handleViewChunks = async (doc: DocumentMetadata) => {
+  const handleInspect = async (doc: DocumentMetadata) => {
     try {
       setInspectDoc(doc);
       setLoadingChunks(true);
-      const docChunks = await api.getDocumentChunks(doc.id);
-      setChunks(docChunks);
+      const data = await api.getDocumentChunks(doc.id);
+      setChunks(data);
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch chunks.');
+      setError(err.message || 'Failed to fetch document chunks.');
     } finally {
       setLoadingChunks(false);
     }
   };
 
+  const handleCopyChunk = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedChunkId(id);
+    setTimeout(() => setCopiedChunkId(null), 2000);
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Page Title */}
-      <div className="border-b border-[#DCE6F2] pb-4">
-        <h1 className="text-lg font-semibold tracking-tight text-[#101C3A] poppins">
-          Approved Document Management &amp; Ingestion Desk
-        </h1>
-        <p className="mt-0.5 text-xs text-[#647794]">
-          Upload and index verified university policies, dining norms, and maintenance handbooks for grounded RAG synthesis.
-        </p>
+    <div className="mx-auto max-w-5xl space-y-8 animate-fade-in pb-16">
+      {/* Header Banner */}
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-card">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-indigo-500/10 to-transparent blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-1.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-600">
+              Knowledge Base Management
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 poppins">
+              Approved Policy Documents &amp; Ingestion
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-xl">
+              Upload institutional rulebooks, circulars, and dining regulations to be chunked, vectorized, and served to the RAG policy assistant.
+            </p>
+          </div>
+
+          <button
+            onClick={loadDocuments}
+            disabled={loading}
+            className="btn-press inline-flex items-center space-x-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-subtle shrink-0 self-start sm:self-auto disabled:opacity-50"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-indigo-600' : 'text-slate-500'}`} />
+            <span>Sync Knowledge Base</span>
+          </button>
+        </div>
       </div>
 
+      {/* Notifications */}
       {uploadSuccess && (
-        <div className="rounded-md border border-[#3F51B5]/40 bg-[#EAF4FF] p-4 text-xs text-[#3F51B5] flex items-center space-x-2">
-          <CheckCircle2 className="h-4 w-4 shrink-0" />
-          <span>{uploadSuccess}</span>
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 text-xs text-emerald-800 shadow-card animate-slide-down flex items-start justify-between">
+          <div className="flex items-center space-x-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+            <span>{uploadSuccess}</span>
+          </div>
+          <button onClick={() => setUploadSuccess(null)} className="text-emerald-700 hover:text-emerald-900">
+            <X className="h-3.5 w-3.5" />
+          </button>
         </div>
       )}
 
       {error && (
-        <div className="rounded-md border border-[#DC143C]/30 bg-[#FDF2F2] p-4 text-xs text-[#DC143C]">
-          <div className="font-semibold">Ingestion Pipeline Notice</div>
-          <p className="mt-0.5">{error}</p>
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-700 animate-slide-down">
+          {error}
         </div>
       )}
 
-      {/* Upload Form */}
-      <form
-        onSubmit={handleUpload}
-        className="rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] p-5 space-y-4 shadow-card"
-      >
-        <div className="border-b border-[#DCE6F2] pb-2 text-[10px] font-semibold uppercase tracking-wider text-[#101C3A] poppins">
-          Ingest New Approved Document
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-[#647794]">
-              Document Title
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Hostel Gate Protocol &amp; Visitor Guidelines 2026"
-              required
-              className="mt-1 w-full rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] px-3 py-2 text-sm text-[#101C3A] focus:border-[#3F51B5] focus:outline-none"
-            />
+      {/* Upload New Document Card */}
+      <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-card space-y-5">
+        <div className="flex items-center space-x-2.5 border-b border-slate-100 pb-3">
+          <div className="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <FileUp className="h-4 w-4" />
           </div>
-
           <div>
-            <label className="block text-sm font-medium text-[#647794]">
-              Policy Category
-            </label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] px-3 py-2 text-sm text-[#101C3A] focus:border-[#3F51B5] focus:outline-none"
-            >
-              <option value="Rules & Discipline">Rules & Discipline</option>
-              <option value="Mess & Dining">Mess & Dining</option>
-              <option value="Facilities & Maintenance">Facilities & Maintenance</option>
-              <option value="Hostel Admissions">Hostel Admissions</option>
-              <option value="General Notice">General Notice</option>
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-[#647794]">
-            Attach Official File (PDF, Markdown, or Plain Text)
-          </label>
-          <input
-            type="file"
-            accept=".pdf,.md,.txt"
-            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-            required
-            className="mt-1 block w-full text-sm text-[#647794] file:mr-4 file:rounded-md file:border file:border-[#DCE6F2] file:bg-[#FFFFFF] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[#101C3A] hover:file:bg-[#F5F7FF] cursor-pointer"
-          />
-        </div>
-
-        <div className="flex justify-end pt-2 border-t border-[#DCE6F2]">
-          <button
-            type="submit"
-            disabled={uploading || !title.trim() || !selectedFile}
-            className="inline-flex items-center space-x-2 rounded-lg bg-[#021861] px-4 py-2 text-xs font-medium text-white hover:bg-[#3F51B5] disabled:opacity-50"
-          >
-            <Upload className="h-3.5 w-3.5" />
-            <span>{uploading ? 'Chunking & Embedding...' : 'Parse & Embed Document'}</span>
-          </button>
-        </div>
-      </form>
-
-      {/* Documents Table */}
-      <div className="rounded-lg border border-[#DCE6F2] bg-[#FFFFFF]">
-        <div className="flex items-center justify-between border-b border-[#DCE6F2] px-5 py-3">
-          <div className="flex items-center space-x-2">
-            <FileText className="h-4 w-4 text-[#101C3A]" />
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-[#101C3A] poppins">
-              Indexed Policy Documents ({documents.length})
+            <h2 className="text-sm font-bold text-slate-900 tracking-tight">
+              Ingest New Policy PDF / Text Document
             </h2>
+            <p className="text-[11px] text-slate-400">Files are automatically parsed into semantic vector chunks</p>
           </div>
-          <button
-            onClick={loadDocuments}
-            className="text-xs text-[#647794] hover:text-[#101C3A]"
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-          </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="border-b border-[#DCE6F2] bg-[#EAF4FF]/50 text-[11px] font-semibold uppercase text-[#647794]">
-              <tr>
-                <th className="px-5 py-3">Document Title</th>
-                <th className="px-5 py-3">Category</th>
-                <th className="px-5 py-3">File Specs</th>
-                <th className="px-5 py-3">Status</th>
-                <th className="px-5 py-3">Vector Chunks</th>
-                <th className="px-5 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#DCE6F2]">
-              {documents.length > 0 ? (
-                documents.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-[#F5F7FF]">
-                    <td className="px-5 py-3 font-semibold text-[#101C3A]">
-                      <div>{doc.title}</div>
-                      <div className="text-[11px] font-normal text-[#647794]">{doc.file_name}</div>
-                    </td>
-                    <td className="px-5 py-3 text-[#647794]">
-                      {doc.category}
-                    </td>
-                    <td className="px-5 py-3 text-[#647794] font-mono text-[11px]">
-                      {(doc.file_size / 1024).toFixed(1)} KB
-                    </td>
-                    <td className="px-5 py-3">
-                      <span className="inline-flex items-center space-x-1 rounded border border-[#3F51B5]/30 bg-[#EAF4FF] px-2 py-0.5 text-[11px] font-medium text-[#3F51B5]">
-                        <CheckCircle2 className="h-3 w-3" />
-                        <span>Indexed</span>
-                      </span>
-                    </td>
-                    <td className="px-5 py-3 font-mono font-medium text-[#101C3A]">
-                      {doc.chunk_count} chunks
-                    </td>
-                    <td className="px-5 py-3 text-right space-x-2">
-                      <button
-                        onClick={() => handleViewChunks(doc)}
-                        className="inline-flex items-center space-x-1 rounded border border-[#DCE6F2] bg-[#FFFFFF] px-2.5 py-1 text-[11px] font-medium text-[#101C3A] hover:bg-[#EAF4FF]"
-                      >
-                        <Eye className="h-3 w-3" />
-                        <span>Inspect Chunks</span>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(doc)}
-                        className="inline-flex items-center space-x-1 rounded border border-[#DC143C]/30 bg-[#FDF2F2] px-2 py-1 text-[11px] font-medium text-[#DC143C] hover:bg-[#FDF2F2]"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                        <span>Delete</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6}>
-                    <EmptyState
-                      icon={FileText}
-                      title="No approved documents"
-                      description="No approved documents have been uploaded yet."
-                    />
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Chunk Inspector Panel */}
-      {inspectDoc && (
-        <div className="rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#DCE6F2] pb-3">
+        <form onSubmit={handleUpload} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-[#101C3A] poppins">
-                Chunk Inspection: {inspectDoc.title}
-              </h3>
-              <p className="text-[11px] text-[#647794]">
-                Displaying {chunks.length} semantic chunks stored in vector store
-              </p>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                Official Document Title
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Student Hostel Handbook 2026"
+                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 text-xs text-slate-900 focus:border-indigo-600 focus:outline-none"
+              />
             </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                Policy Category
+              </label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-xs text-slate-900 focus:border-indigo-600 focus:outline-none"
+              >
+                <option value="Rules & Discipline">Rules &amp; Discipline</option>
+                <option value="Mess & Dining">Mess &amp; Dining Guidelines</option>
+                <option value="Maintenance & Estate">Maintenance &amp; Estate Guidelines</option>
+                <option value="Fee & Rebate">Fee, Deposits &amp; Rebates</option>
+                <option value="Emergency & Health">Emergency &amp; Health Regulations</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Styled File Drop Area */}
+          <div className="rounded-2xl border-2 border-dashed border-slate-200 p-6 text-center hover:border-indigo-300 transition-colors bg-slate-50/50">
+            <input
+              type="file"
+              id="file-upload"
+              accept=".pdf,.txt,.md,.json"
+              onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+              className="hidden"
+            />
+            <label htmlFor="file-upload" className="cursor-pointer space-y-2 block">
+              <Upload className="mx-auto h-8 w-8 text-indigo-600" />
+              <div className="text-xs font-bold text-slate-900">
+                {selectedFile ? selectedFile.name : 'Click to select document (PDF, TXT, MD)'}
+              </div>
+              <p className="text-[11px] text-slate-400">
+                Maximum file size: 25MB. Text and tables are automatically chunked with overlap.
+              </p>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-end">
             <button
-              onClick={() => setInspectDoc(null)}
-              className="rounded border border-[#DCE6F2] px-2.5 py-1 text-xs text-[#101C3A] hover:bg-[#EAF4FF]"
+              type="submit"
+              disabled={uploading || !title.trim() || !selectedFile}
+              className="btn-press inline-flex items-center space-x-2 rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-slate-800 disabled:opacity-40 transition-colors"
             >
-              Close Inspector
+              <span>{uploading ? 'Parsing & Indexing…' : 'Index Document into RAG'}</span>
+              <FileUp className="h-3.5 w-3.5" />
             </button>
           </div>
+        </form>
+      </div>
 
-          {loadingChunks ? (
-            <div className="py-6 text-center text-xs text-[#647794]">Loading chunks...</div>
-          ) : (
-            <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-              {chunks.map((chunk, idx) => (
-                <div key={idx} className="rounded border border-[#DCE6F2] bg-[#FFFFFF] p-3 text-xs space-y-1.5">
-                  <div className="flex items-center justify-between text-[11px] text-[#647794] border-b border-[#DCE6F2]/50 pb-1">
-                    <span className="font-semibold text-[#101C3A]">Chunk #{chunk.chunk_index}</span>
-                    <span>Page {chunk.page_number}</span>
+      {/* Indexed Documents Table / Cards */}
+      <div className="space-y-4">
+        <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+          Currently Indexed Knowledge Base ({documents.length} documents)
+        </h2>
+
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card animate-pulse space-y-2">
+                <div className="h-4 w-48 bg-slate-200 rounded" />
+                <div className="h-3 w-32 bg-slate-100 rounded" />
+              </div>
+            ))}
+          </div>
+        ) : documents.length > 0 ? (
+          <div className="space-y-3">
+            {documents.map((doc) => (
+              <div
+                key={doc.id}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-slate-200/90 bg-white shadow-card hover-lift transition-all"
+              >
+                <div className="flex items-start space-x-3.5 min-w-0">
+                  <div className="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                    <FileText className="h-5 w-5" />
                   </div>
-                  <p className="font-mono text-[11px] leading-relaxed text-[#101C3A] whitespace-pre-wrap">
-                    {chunk.content}
-                  </p>
+                  <div className="min-w-0">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-sm font-bold text-slate-900 truncate">
+                        {doc.title}
+                      </h3>
+                      <Badge variant="primary">
+                        {doc.category}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center space-x-3 text-[11px] text-slate-400 mt-1">
+                      <span>Indexed into <strong className="text-slate-700">{doc.chunk_count} vector chunks</strong></span>
+                      <span>&bull;</span>
+                      <span>{doc.created_at ? doc.created_at.slice(0, 10) : 'Recent'}</span>
+                    </div>
+                  </div>
                 </div>
-              ))}
+
+                <div className="flex items-center space-x-2 shrink-0">
+                  <button
+                    onClick={() => handleInspect(doc)}
+                    className="btn-press inline-flex items-center space-x-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-subtle"
+                  >
+                    <Eye className="h-3.5 w-3.5 text-slate-500" />
+                    <span>Inspect Chunks</span>
+                  </button>
+                  <button
+                    onClick={() => handleDelete(doc)}
+                    className="btn-press inline-flex items-center space-x-1.5 rounded-xl border border-slate-200 bg-white p-2 text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors shadow-subtle"
+                    title="Delete document"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            icon={FileText}
+            title="Knowledge base is empty"
+            description="Upload your first approved university policy PDF above to enable AI-powered grounded answers."
+          />
+        )}
+      </div>
+
+      {/* Chunk Inspector Modal */}
+      {inspectDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="relative w-full max-w-2xl max-h-[85vh] flex flex-col rounded-3xl border border-slate-200 bg-white shadow-2xl overflow-hidden animate-slide-down">
+            <div className="flex items-center justify-between border-b border-slate-100 p-6 bg-slate-50/60">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Vector Inspector</span>
+                <h3 className="text-base font-bold text-slate-900 tracking-tight">
+                  {inspectDoc.title}
+                </h3>
+              </div>
+              <button
+                onClick={() => setInspectDoc(null)}
+                className="btn-press rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
-          )}
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {loadingChunks ? (
+                <div className="py-12 text-center text-xs text-slate-400">Loading chunks…</div>
+              ) : chunks.length > 0 ? (
+                chunks.map((ch) => (
+                  <div key={ch.id} className="p-4 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-2">
+                    <div className="flex items-center justify-between text-xs font-semibold">
+                      <span className="text-slate-700 font-mono text-[11px]">Chunk #{ch.chunk_index} &bull; Page {ch.page_number}</span>
+                      <button
+                        onClick={() => handleCopyChunk(ch.content, ch.id)}
+                        className="btn-press text-[11px] text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                      >
+                        {copiedChunkId === ch.id ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
+                        <span>{copiedChunkId === ch.id ? 'Copied' : 'Copy'}</span>
+                      </button>
+                    </div>
+                    <div className="text-xs font-mono text-slate-700 leading-relaxed bg-white p-3 rounded-xl border border-slate-200/80">
+                      {ch.content}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="py-12 text-center text-xs text-slate-400">No chunks retrieved for this document.</div>
+              )}
+            </div>
+
+            <div className="border-t border-slate-100 p-4 bg-slate-50/80 flex justify-end">
+              <button
+                onClick={() => setInspectDoc(null)}
+                className="btn-press rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Close Inspector
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

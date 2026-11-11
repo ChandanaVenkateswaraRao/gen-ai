@@ -14,12 +14,12 @@ const poppins = Poppins({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-poppins',
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['400', '500', '600', '700'],
 });
 
 export const metadata: Metadata = {
-  title: 'HostelIQ AI — Intelligent Hostel & Residential Life Assistant',
-  description: 'Premium university hostel management platform integrating RAG policy retrieval, mess schedule management, and verified complaint tracking.',
+  title: 'HostelIQ AI — Intelligent Residential Life Operating System',
+  description: 'Premium university hostel management platform integrating RAG policy retrieval, smart mess scheduling, and verified maintenance tracking.',
 };
 
 export default function RootLayout({
@@ -28,8 +28,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
-      <body className={`${inter.className} ${poppins.className} min-h-screen bg-softNavyBg text-darkNavy antialiased`}>
+    <html lang="en" className={`${inter.variable} ${poppins.variable} scroll-smooth`}>
+      <body className={`${inter.className} min-h-screen bg-[#F8FAFC] text-slate-900 antialiased selection:bg-indigo-500 selection:text-white`}>
         <AppProvider>
           <AppShell>
             {children}

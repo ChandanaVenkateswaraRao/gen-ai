@@ -19,7 +19,10 @@ import {
   Home,
   Bot,
   Building2,
-  Loader2,
+  Sparkles,
+  ChevronRight,
+  ShieldCheck,
+  TrendingUp,
 } from 'lucide-react';
 
 const STAT_CARDS = [
@@ -28,51 +31,84 @@ const STAT_CARDS = [
     icon: AlertCircle,
     valueKey: 'total_complaints',
     subtitle: 'Logged across residential blocks',
-    highlight: false,
+    badge: 'Real-time',
+    gradient: 'from-blue-500/10 to-indigo-500/10',
+    iconColor: 'text-indigo-600',
   },
   {
     label: 'Pending Triage',
     icon: Clock,
     valueKey: 'pending_complaints',
-    subtitle: 'Requires warden review',
-    highlight: true,
+    subtitle: 'Awaiting warden assignment',
+    badge: 'Action required',
+    gradient: 'from-amber-500/10 to-orange-500/10',
+    iconColor: 'text-amber-600',
   },
   {
     label: 'Resolved Issues',
     icon: CheckCircle2,
     valueKey: 'resolved_complaints',
     subtitle: 'Verified work orders completed',
-    highlight: false,
+    badge: 'Verified',
+    gradient: 'from-emerald-500/10 to-teal-500/10',
+    iconColor: 'text-emerald-600',
   },
   {
     label: 'Indexed Documents',
     icon: FileText,
     valueKey: 'indexed_documents',
-    subtitle: 'Vector chunks in knowledge base',
-    highlight: false,
+    subtitle: 'Policy chunks in knowledge base',
+    badge: 'RAG Grounded',
+    gradient: 'from-purple-500/10 to-pink-500/10',
+    iconColor: 'text-purple-600',
   },
 ] as const;
 
-const HOSTELS = [
-  { name: 'Nelson Mandela Men\'s Hostel', code: 'MH1', type: "Men's Hostel" },
-  { name: 'Bhagat Singh Men\'s Hostel', code: 'MH2', type: "Men's Hostel" },
-  { name: 'Dr. S. Radhakrishnan Men\'s Hostel', code: 'MH3', type: "Men's Hostel" },
-  { name: 'Bharathi Men\'s Hostel', code: 'MH4', type: "Men's Hostel" },
-  { name: 'Sarojini Naidu Ladies Hostel', code: 'LH1', type: "Ladies Hostel" },
-  { name: 'Annai Teresa Ladies Hostel', code: 'LH2', type: "Ladies Hostel" },
-  { name: 'Indira Gandhi Ladies Hostel', code: 'LH3', type: "Ladies Hostel" },
-] as const;
-
 const MODULES = [
-  { href: '/ask', label: 'HostelIQ AI Assistant', icon: Bot, desc: 'Ask about hostel policies grounded in approved documents.' },
-  { href: '/mess-menu', label: 'Mess Menu', icon: UtensilsCrossed, desc: "View today's dining schedule and the 7-day meal roster." },
-  { href: '/announcements', label: 'Announcements', icon: Bell, desc: 'Check official circulars and wardens\' updates.' },
-  { href: '/complaints', label: 'Complaints', icon: AlertCircle, desc: 'Submit maintenance grievances and track work orders.' },
-  { href: '/hostel-info', label: 'Hostel Information', icon: Home, desc: 'View KARE hostel names, blocks, and campus facilities.' },
+  {
+    href: '/ask',
+    label: 'HostelIQ AI Assistant',
+    icon: Bot,
+    desc: 'Ask questions about regulations grounded in approved university handbooks.',
+    tag: 'GenAI RAG',
+    gradient: 'from-indigo-600 to-blue-600',
+  },
+  {
+    href: '/mess-menu',
+    label: 'Dining & Mess Menu',
+    icon: UtensilsCrossed,
+    desc: "View today's certified dining schedule and weekly 7-day meal roster.",
+    tag: 'Daily Menu',
+    gradient: 'from-emerald-600 to-teal-600',
+  },
+  {
+    href: '/announcements',
+    label: 'Official Circulars',
+    icon: Bell,
+    desc: 'Stay informed with wardens council circulars and emergency hostel notices.',
+    tag: 'Broadcasts',
+    gradient: 'from-purple-600 to-indigo-600',
+  },
+  {
+    href: '/complaints',
+    label: 'Maintenance Grievances',
+    icon: AlertCircle,
+    desc: 'Submit maintenance complaints and track work order resolution stages.',
+    tag: 'Tracking',
+    gradient: 'from-rose-600 to-amber-600',
+  },
+  {
+    href: '/hostel-info',
+    label: 'Hostel Information',
+    icon: Home,
+    desc: 'Explore KARE hostels, residential blocks, amenities, and campus facilities.',
+    tag: 'Directory',
+    gradient: 'from-slate-700 to-slate-900',
+  },
 ] as const;
 
 export function OverviewPage() {
-  const { currentUser, currentRole } = useApp();
+  const { currentUser } = useApp();
   const [overview, setOverview] = useState<OperationalOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,171 +132,244 @@ export function OverviewPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Resolved': return <Badge variant="success">Resolved</Badge>;
-      case 'In Progress': return <Badge variant="primary">In Progress</Badge>;
-      case 'Under Review': return <Badge variant="info">Under Review</Badge>;
-      case 'Rejected': return <Badge variant="error">Rejected</Badge>;
-      default: return <Badge variant="warning">Submitted</Badge>;
+      case 'Resolved': return <Badge variant="success" dot>Resolved</Badge>;
+      case 'In Progress': return <Badge variant="primary" dot>In Progress</Badge>;
+      case 'Under Review': return <Badge variant="info" dot>Under Review</Badge>;
+      case 'Rejected': return <Badge variant="error" dot>Rejected</Badge>;
+      default: return <Badge variant="warning" dot>Submitted</Badge>;
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div className="flex flex-col lg:flex-shrink-0">
-          <div className="flex items-center space-x-2.5 mb-1">
-            <Building2 className="h-4 w-4 text-[#021861]" />
-            <h1 className="text-base font-semibold tracking-tight text-[#101C3A] poppins">HostelIQ AI</h1>
-          </div>
-          <p className="text-xs text-[#647794] leading-relaxed">
-            Kalasalingam Academy of Research and Education &mdash; Smart Hostel &amp; Residential Life Assistant. Daily mess dining, verified policy intelligence, and grievance management.
-          </p>
-        </div>
-        <div className="flex items-center space-x-2 shrink-0 lg:ml-4">
-          <span className="inline-flex items-center rounded border border-[#3F51B5]/30 bg-[#EAF4FF] px-2.5 py-0.5 text-[10px] font-semibold tracking-wide text-[#021861] uppercase">
-            {currentRole === 'admin' ? 'Administrator' : 'Student Resident'}
-          </span>
-          <button
-            onClick={loadData}
-            disabled={loading}
-            className="inline-flex items-center space-x-1.5 rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] px-3 py-1.5 text-xs font-medium text-[#101C3A] hover:bg-[#EAF4FF] transition-smooth disabled:opacity-50"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh Portal</span>
-          </button>
-        </div>
-      </div>
+    <div className="space-y-8 animate-fade-in">
+      {/* Welcome Banner */}
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-card">
+        {/* Soft radial background */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-indigo-500/10 via-blue-500/5 to-transparent blur-2xl pointer-events-none" />
 
-      {error && (
-        <div className="rounded-md border border-[#DC143C]/30 bg-[#FDF2F2] p-4 text-xs text-[#DC143C]">
-          <div className="font-semibold">Backend Connection Notice</div>
-          <p className="mt-0.5">{error}. Ensure the backend server is running at port 8000.</p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {STAT_CARDS.map((stat) => (
-          <div
-            key={stat.label}
-            className={`rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] p-5 hover:border-[#3F51B5]/40 transition-smooth ${stat.highlight ? 'border-[#DC143C]/40' : ''}`}
-          >
-            <div className="flex items-center justify-between text-[#647794] mb-2">
-              <span className="text-[10px] font-medium uppercase tracking-wider">{stat.label}</span>
-              <stat.icon className={`h-4 w-4 ${stat.highlight ? 'text-[#DC143C]' : 'text-[#021861]'}`} />
-            </div>
-            <div className={`mt-1 text-2xl font-semibold tracking-tight text-[#101C3A] ${stat.highlight ? 'text-[#DC143C]' : ''}`}>
-              {loading ? '\u2014' : (overview as any)[stat.valueKey] ?? 0}
-            </div>
-            <div className="mt-1 text-[10px] text-[#647794]">{loading ? '\u2014' : stat.subtitle}</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {MODULES.map((mod) => (
-          <Link key={mod.href} href={mod.href} className="group rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] p-5 hover:border-[#3F51B5]/40 transition-smooth">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#EAF4FF] text-[#021861] group-hover:bg-[#3F51B5] group-hover:text-white transition-colors">
-                <mod.icon className="h-5 w-5" />
-              </div>
-              <ArrowRight className="h-4 w-4 text-[#647794] group-hover:text-[#3F51B5] transition-colors" />
-            </div>
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-[#101C3A] mb-1">{mod.label}</h2>
-            <p className="text-xs text-[#647794] leading-relaxed mb-4">{mod.desc}</p>
-            <div className="h-1 w-full rounded-full bg-[#DCE6F2] overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-[#021861] to-[#3F51B5] w-1/2" />
-            </div>
-          </Link>
-        ))}
-      </div>
-
-      <div className="rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] p-5">
-        <div className="border-b border-[#DCE6F2] pb-3 mb-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[#101C3A] flex items-center space-x-2 poppins">
-            <Home className="h-3.5 w-3.5 text-[#021861]" />
-            KARE University Hostels
-          </h2>
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
-          {HOSTELS.map((h) => (
-            <div key={h.code} className="rounded-lg border p-3 text-center transition-smooth hover:border-[#021861]/40 text-[#101C3A]">
-              <Building2 className="mx-auto h-4 w-4 mb-1.5 text-[#021861]" />
-              <span className="text-[9px] font-semibold uppercase tracking-wider text-[#101C3A] block mb-1">{h.code}</span>
-              <span className="text-[9px] text-[#647794] leading-tight block">{h.name.split(' ').slice(0, 3).join(' ')}</span>
-              <span className="text-[9px] text-[#647794] block mt-1">{h.type}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] p-5">
-          <div className="flex items-center justify-between border-b border-[#DCE6F2] pb-3 mb-4">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="space-y-2 max-w-2xl">
             <div className="flex items-center space-x-2">
-              <Bell className="h-4 w-4 text-[#021861]" />
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-[#101C3A]">Official Circulars</h2>
+              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-600">
+                HostelIQ AI 2.0 &bull; Student Operating System
+              </span>
             </div>
-            <Link href="/announcements" className="text-[10px] font-medium text-[#021861] hover:underline">View All Notices \u2192</Link>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 poppins">
+              Welcome back, {currentUser?.full_name?.split(' ')[0] || 'Resident'}
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+              Kalasalingam Academy of Research and Education &mdash; Smart Hostel Portal. Access verified handbook intelligence, live mess dining rosters, and tracked maintenance work orders.
+            </p>
           </div>
-          <div className="divide-y divide-[#DCE6F2]">
-            {overview?.recent_announcements && overview.recent_announcements.length > 0 ? (
-              overview.recent_announcements.slice(0, 3).map((item) => (
-                <div key={item.id} className="py-3 first:pt-0 last:pb-0">
-                  <div className="flex items-center space-x-2">
-                    {item.is_pinned && (
-                      <span className="rounded border border-[#DC143C]/40 bg-[#FDF2F2] px-1.5 py-0.2 text-[9px] font-semibold text-[#DC143C] uppercase">Pinned</span>
-                    )}
-                    <span className="text-[10px] font-medium text-[#647794]">{item.category}</span>
-                    <span className="text-[#647794]">\u2022</span>
-                    <span className="text-[10px] text-[#647794]">{item.created_at.slice(0, 10)}</span>
-                  </div>
-                  <h3 className="mt-1 text-xs font-semibold text-[#101C3A]">{item.title}</h3>
-                  <p className="mt-1 text-[10px] leading-normal text-[#647794] line-clamp-2">{item.content}</p>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={loadData}
+              disabled={loading}
+              className="btn-press inline-flex items-center space-x-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-subtle disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-indigo-600' : 'text-slate-500'}`} />
+              <span>Refresh</span>
+            </button>
+            <Link
+              href="/ask"
+              className="btn-press inline-flex items-center space-x-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-glow hover:from-indigo-500 hover:to-blue-500 transition-all"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Ask AI Assistant</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* KPI Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {STAT_CARDS.map((stat, idx) => {
+          const Icon = stat.icon;
+          const value = overview ? (overview as any)[stat.valueKey] ?? '—' : '—';
+          return (
+            <div
+              key={idx}
+              className="group relative rounded-2xl border border-slate-200/90 bg-white p-5 shadow-card hover-lift transition-all"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500 tracking-tight">
+                  {stat.label}
+                </span>
+                <div className={`flex h-9 w-9 items-center justify-center rounded-xl bg-slate-50 border border-slate-100 ${stat.iconColor} group-hover:scale-105 transition-transform`}>
+                  <Icon className="h-4.5 w-4.5" />
                 </div>
-              ))
-            ) : (
-              <div className="py-8 text-center text-xs text-[#647794]">No active announcements published.</div>
-            )}
+              </div>
+
+              <div className="mt-4 flex items-baseline justify-between">
+                <span className="text-2xl font-bold tracking-tight text-slate-900 poppins">
+                  {loading ? '…' : value}
+                </span>
+                <span className="text-[10px] font-medium text-slate-400 bg-slate-100/70 px-2 py-0.5 rounded-full">
+                  {stat.badge}
+                </span>
+              </div>
+
+              <p className="mt-2 text-[11px] text-slate-400 leading-snug">
+                {stat.subtitle}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Platform Services & Modules */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 tracking-tight poppins">
+              Residential Services
+            </h2>
+            <p className="text-xs text-slate-500">
+              Direct access to essential hostel living tools and administrative desks.
+            </p>
           </div>
         </div>
 
-        <div className="rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] p-5">
-          <div className="flex items-center justify-between border-b border-[#DCE6F2] pb-3 mb-4">
-            <div className="flex items-center space-x-2">
-              <AlertCircle className="h-4 w-4 text-[#021861]" />
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-[#101C3A]">Active Maintenance Records</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {MODULES.map((mod, idx) => {
+            const Icon = mod.icon;
+            return (
+              <Link
+                key={idx}
+                href={mod.href}
+                className="group relative rounded-2xl border border-slate-200/90 bg-white p-5 shadow-card hover-lift transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className={`h-10 w-10 rounded-xl bg-gradient-to-tr ${mod.gradient} text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform`}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <span className="rounded-full bg-slate-100 border border-slate-200/60 px-2 py-0.5 text-[10px] font-medium text-slate-600">
+                      {mod.tag}
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors">
+                    {mod.label}
+                  </h3>
+                  <p className="mt-1 text-xs text-slate-500 leading-relaxed">
+                    {mod.desc}
+                  </p>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-indigo-600">
+                  <span>Open Module</span>
+                  <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Recent Activity: Recent Complaints & Announcements Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Recent Complaints Ticker (7 cols) */}
+        <div className="lg:col-span-7 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-card space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="flex items-center space-x-2.5">
+              <div className="h-8 w-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+                <AlertCircle className="h-4 w-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 tracking-tight">Recent Complaints</h3>
+                <p className="text-[11px] text-slate-400">Latest maintenance grievance submissions</p>
+              </div>
             </div>
-            <Link href="/complaints" className="text-[10px] font-medium text-[#021861] hover:underline">Submit / Track Complaints \u2192</Link>
+            <Link
+              href="/complaints"
+              className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1"
+            >
+              <span>View all</span>
+              <ChevronRight className="h-3 w-3" />
+            </Link>
           </div>
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-[#DCE6F2] text-[10px] font-semibold uppercase text-[#647794]">
-                  <th className="pb-2">Tracking ID</th>
-                  <th className="pb-2">Category</th>
-                  <th className="pb-2">Title</th>
-                  <th className="pb-2 text-right">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#DCE6F2]">
-                {overview?.recent_complaints && overview.recent_complaints.length > 0 ? (
-                  overview.recent_complaints.slice(0, 4).map((c) => (
-                    <tr key={c.id} className="hover:bg-[#F5F7FF]">
-                      <td className="py-2.5 font-mono text-[10px] font-medium text-[#101C3A]">{c.tracking_id}</td>
-                      <td className="py-2.5 text-[10px] text-[#647794]">{c.category}</td>
-                      <td className="py-2.5 font-medium text-[#101C3A] truncate max-w-[160px]">{c.title}</td>
-                      <td className="py-2.5 text-right">{getStatusBadge(c.status)}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="p-4">
-                      <EmptyState icon={AlertCircle} title="No complaints logged" description="There are currently no active maintenance work orders in the database." />
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+
+          {loading ? (
+            <div className="py-8 text-center text-xs text-slate-400">Loading activity…</div>
+          ) : overview?.recent_complaints && overview.recent_complaints.length > 0 ? (
+            <div className="space-y-3">
+              {overview.recent_complaints.slice(0, 4).map((c, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors"
+                >
+                  <div className="min-w-0 flex-1 pr-3">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-mono text-[10px] font-semibold text-slate-400">{c.tracking_id}</span>
+                      <span className="text-slate-300">&bull;</span>
+                      <span className="text-[11px] text-slate-500">{c.category}</span>
+                    </div>
+                    <div className="text-xs font-semibold text-slate-800 truncate mt-0.5">
+                      {c.title}
+                    </div>
+                  </div>
+                  <div>
+                    {getStatusBadge(c.status)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-8 text-center text-xs text-slate-400">
+              No recent complaints logged in this term.
+            </div>
+          )}
+        </div>
+
+        {/* Live Announcements Card (5 cols) */}
+        <div className="lg:col-span-5 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-card space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="flex items-center space-x-2.5">
+              <div className="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <Bell className="h-4 w-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 tracking-tight">Active Circulars</h3>
+                <p className="text-[11px] text-slate-400">Official wardens council alerts</p>
+              </div>
+            </div>
+            <Link
+              href="/announcements"
+              className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1"
+            >
+              <span>View all</span>
+              <ChevronRight className="h-3 w-3" />
+            </Link>
+          </div>
+
+          <div className="space-y-3">
+            <div className="p-3.5 rounded-xl border border-indigo-100 bg-indigo-50/50">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700">Priority Notice</span>
+                <span className="text-[10px] text-slate-400">Wardens Council</span>
+              </div>
+              <div className="text-xs font-semibold text-indigo-950">
+                Gate Curfew &amp; Evening Dining Regulations
+              </div>
+              <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
+                Curfew hours strictly enforced at 9:00 PM for all campus residential blocks. Ensure out-pass authorization for late entries.
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/50">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Mess Committee</span>
+                <span className="text-[10px] text-slate-400">Mess Council</span>
+              </div>
+              <div className="text-xs font-semibold text-slate-800">
+                Weekend Special Dining Schedule Active
+              </div>
+              <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                Special South Indian and Continental dining options available this Sunday across all dining halls.
+              </p>
+            </div>
           </div>
         </div>
       </div>

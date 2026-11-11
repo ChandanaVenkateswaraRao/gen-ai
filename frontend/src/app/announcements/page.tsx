@@ -1,24 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Calendar, User, Search, Bell, Pin, Shield } from 'lucide-react';
+import { Calendar, User, Search, Bell, Pin, Shield, Sparkles, Filter, AlertTriangle } from 'lucide-react';
 import { api } from '@/lib/api';
 import { AnnouncementItem } from '@/types';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Badge } from '@/components/ui/Badge';
-
-const PRIORITY_STYLES: Record<string, { badge: string; border: string }> = {
-  Urgent: { badge: 'border-[#DC143C]/30 bg-[#FDF2F2] text-[#DC143C]', border: 'border-[#DC143C]/50' },
-  High: { badge: 'border-[#3F51B5]/30 bg-[#EAF4FF] text-[#3F51B5]', border: 'border-[#3F51B5]/30' },
-  Normal: { badge: 'border-[#021861]/30 bg-[#EAF4FF] text-[#021861]', border: 'border-[#021861]/30' },
-};
-
-const CATEGORY_STYLES: Record<string, string> = {
-  Urgent: 'border-[#DC143C]/30 bg-[#FDF2F2] text-[#DC143C]',
-  Maintenance: 'border-[#3F51B5]/30 bg-[#EAF4FF] text-[#3F51B5]',
-  Mess: 'border-[#3F51B5]/30 bg-[#EAF4FF] text-[#3F51B5]',
-  General: 'border-[#021861]/30 bg-[#EAF4FF] text-[#021861]',
-};
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
@@ -55,30 +42,47 @@ export default function AnnouncementsPage() {
     );
   });
 
+  const getPriorityBadge = (priority: string) => {
+    switch (priority) {
+      case 'Urgent':
+        return <Badge variant="error" dot>Urgent Priority</Badge>;
+      case 'High':
+        return <Badge variant="warning" dot>High Priority</Badge>;
+      default:
+        return <Badge variant="neutral">Normal</Badge>;
+    }
+  };
+
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      {/* Header */}
-      <div className="rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <div className="flex items-center space-x-2">
-            <Bell className="h-4 w-4 text-[#021861]" />
-            <h1 className="text-base font-semibold tracking-tight text-[#101C3A]">
-              Official Circulars &amp; Announcements
+    <div className="mx-auto max-w-4xl space-y-6 animate-fade-in pb-16">
+      {/* Header Banner */}
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-card">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-indigo-500/10 to-transparent blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-1.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-600">
+              Campus Broadcasts
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 poppins">
+              Official Circulars &amp; Notices
             </h1>
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-xl">
+              Authoritative announcements issued by the Council of Wardens, Estate Office, and Student Mess Committee.
+            </p>
           </div>
-          <p className="mt-1 text-xs text-[#647794] leading-relaxed">
-            Authoritative institutional circulars issued by the Council of Wardens, Estate Office, and Mess Council.
-          </p>
         </div>
-        <div className="flex gap-2 sm:ml-0">
+
+        {/* Category Filter Pills */}
+        <div className="relative z-10 mt-6 flex flex-wrap gap-2 pt-4 border-t border-slate-100">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-smooth ${
+              className={`btn-press rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all ${
                 selectedCategory === cat
-                  ? 'bg-[#021861] text-white'
-                  : 'border border-[#DCE6F2] bg-[#FFFFFF] text-[#101C3A] hover:bg-[#F5F7FF]'
+                  ? 'bg-slate-900 text-white shadow-sm'
+                  : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
               }`}
             >
               {cat}
@@ -88,96 +92,95 @@ export default function AnnouncementsPage() {
       </div>
 
       {/* Search Bar */}
-      <div className="relative w-full sm:w-96">
-        <Search className="pointer-events-none absolute left-3 top-2.5 h-3.5 w-3.5 text-[#647794]" />
+      <div className="relative">
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+          <Search className="h-4 w-4" />
+        </div>
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search circulars..."
-          className="w-full rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] py-2 pl-9 pr-3 text-sm text-[#101C3A] placeholder:text-[#647794] focus:border-[#3F51B5] focus:outline-none focus:ring-1 focus:ring-[#3F51B5]"
+          placeholder="Search circulars by keyword, topic, or warden name…"
+          className="w-full rounded-2xl border border-slate-200/90 bg-white py-3.5 pl-11 pr-4 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 shadow-card transition-all focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/15"
         />
       </div>
 
+      {/* Error Notice */}
       {error && (
-        <div className="rounded-lg border border-[#DC143C]/30 bg-[#FDF2F2] p-4 text-xs text-[#DC143C]">
-          <div className="font-semibold">Notice Retrieval Error</div>
-          <p className="mt-0.5">{error}</p>
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-700 animate-slide-down">
+          {error}
         </div>
       )}
 
-      {/* Announcements List */}
-      <div className="space-y-3">
-        {filtered.length > 0 ? (
+      {/* Circulars List */}
+      <div className="space-y-4">
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-card space-y-3 animate-pulse">
+                <div className="h-4 w-48 bg-slate-200 rounded" />
+                <div className="h-3 w-full bg-slate-100 rounded" />
+                <div className="h-3 w-3/4 bg-slate-100 rounded" />
+              </div>
+            ))}
+          </div>
+        ) : filtered.length > 0 ? (
           filtered.map((item) => {
-            const priorityStyle = PRIORITY_STYLES[item.priority];
-            const categoryStyle = CATEGORY_STYLES[item.category];
+            const isUrgent = item.priority === 'Urgent';
             return (
-              <article
+              <div
                 key={item.id}
-                className={`rounded-lg border p-5 transition-smooth ${
-                  item.is_pinned
-                    ? 'border-[#DC143C]/40 bg-[#FDF2F2]/30'
-                    : priorityStyle.border + ' hover:border-[#3F51B5]/40 bg-[#FFFFFF]'
+                className={`rounded-2xl border p-6 shadow-card hover-lift transition-all space-y-3 ${
+                  isUrgent
+                    ? 'border-rose-200 bg-rose-50/30'
+                    : 'border-slate-200/90 bg-white'
                 }`}
               >
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#DCE6F2]/60 pb-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
                   <div className="flex items-center space-x-2">
-                    {item.is_pinned && (
-                      <span className="inline-flex items-center rounded border border-[#DC143C]/40 bg-[#FDF2F2] px-2 py-0.5 text-[9px] font-semibold text-[#DC143C] uppercase">
-                        <Pin className="h-3 w-3" />
-                        Pinned Notice
-                      </span>
-                    )}
-                    <span className={`rounded border px-2 py-0.5 text-[9px] font-semibold ${categoryStyle}`}>
+                    <span className="rounded-full bg-slate-100 border border-slate-200/60 px-2.5 py-0.5 text-[10px] font-bold text-slate-700">
                       {item.category}
                     </span>
-                    {item.priority === 'Urgent' && (
-                      <span className="inline-flex items-center rounded border border-[#DC143C]/30 bg-[#FDF2F2] px-2 py-0.5 text-[9px] font-semibold text-[#DC143C] uppercase">
-                        <Shield className="h-3 w-3" />
-                        Urgent
-                      </span>
-                    )}
+                    {getPriorityBadge(item.priority)}
                   </div>
-                  <div className="flex items-center space-x-1.5 text-[10px] text-[#647794]">
-                    <Calendar className="h-3 w-3" />
-                    <span>{item.created_at.slice(0, 10)}</span>
+
+                  <div className="flex items-center space-x-2 text-[11px] text-slate-400 font-medium">
+                    <Calendar className="h-3.5 w-3.5" />
+                    <span>{(item.created_at || (item as any).published_at || '').slice(0, 10)}</span>
                   </div>
                 </div>
 
-                <div className="mt-3">
-                  <h2 className="text-sm font-semibold text-[#101C3A]">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 tracking-tight">
                     {item.title}
-                  </h2>
-                  <p className="mt-2 text-xs leading-relaxed text-[#101C3A] whitespace-pre-wrap">
+                  </h3>
+                  <p className="mt-2 text-xs sm:text-sm leading-relaxed text-slate-600 whitespace-pre-wrap">
                     {item.content}
                   </p>
                 </div>
 
-                <div className="mt-4 flex items-center justify-between border-t border-[#DCE6F2]/60 pt-3 text-[10px] text-[#647794]">
-                  <div className="flex items-center space-x-1.5">
-                    <User className="h-3.5 w-3.5 text-[#021861]" />
-                    <span className="font-medium text-[#101C3A]">{item.author_name}</span>
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                  <div className="flex items-center space-x-1.5 font-medium text-slate-700">
+                    <User className="h-3.5 w-3.5 text-slate-400" />
+                    <span>{item.author_name}</span>
                   </div>
-                  <div>
-                    <Badge variant="info" className="text-[9px]">
-                      Target: {item.target_audience}
-                    </Badge>
-                  </div>
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400">
+                    Official Notice
+                  </span>
                 </div>
-              </article>
+              </div>
             );
           })
         ) : (
           <EmptyState
             icon={Bell}
-            title={loading ? 'Retrieving circulars...' : 'No circulars found'}
-            description={
-              loading
-                ? 'Connecting to institutional notices database...'
-                : 'There are currently no circulars matching the selected category or search filter.'
-            }
-            accent="indigo"
+            title="No circulars match your search"
+            description="Try selecting a different category filter or clearing your search keywords."
+            actionLabel="Reset Search"
+            onAction={() => {
+              setSearchQuery('');
+              setSelectedCategory('All');
+            }}
           />
         )}
       </div>

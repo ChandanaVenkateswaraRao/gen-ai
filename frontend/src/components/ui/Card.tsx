@@ -5,6 +5,7 @@ interface CardProps {
   className?: string;
   padded?: boolean;
   tinted?: boolean;
+  hoverable?: boolean;
 }
 
 export function Card({
@@ -12,11 +13,14 @@ export function Card({
   className = '',
   padded = true,
   tinted = false,
+  hoverable = false,
 }: CardProps) {
   return (
     <div
-      className={`rounded-lg border border-[#D8D7D0] bg-[#FFFFFF] shadow-card ${padded ? 'p-5 sm:p-6' : ''} ${
-        tinted ? 'bg-[#F2F1EC]' : ''
+      className={`rounded-2xl border border-slate-200/85 bg-white shadow-card transition-all duration-200 ${
+        padded ? 'p-5 sm:p-6' : ''
+      } ${tinted ? 'bg-slate-50/60' : 'bg-white'} ${
+        hoverable ? 'hover-lift hover:border-slate-300' : ''
       } ${className}`}
     >
       {children}
@@ -31,7 +35,7 @@ interface CardHeaderProps {
 
 export function CardHeader({ children, className = '' }: CardHeaderProps) {
   return (
-    <div className={`flex flex-col space-y-1.5 pb-3 border-b border-[#D8D7D0] ${className}`}>
+    <div className={`flex flex-col space-y-1.5 pb-4 border-b border-slate-100 ${className}`}>
       {children}
     </div>
   );
@@ -44,7 +48,7 @@ interface CardTitleProps {
 
 export function CardTitle({ children, className = '' }: CardTitleProps) {
   return (
-    <h3 className={`text-xs font-semibold uppercase tracking-wider text-[#202A35] ${className}`}>
+    <h3 className={`text-sm font-semibold tracking-tight text-slate-900 ${className}`}>
       {children}
     </h3>
   );
@@ -57,7 +61,7 @@ interface CardDescriptionProps {
 
 export function CardDescription({ children, className = '' }: CardDescriptionProps) {
   return (
-    <p className={`text-xs text-[#64748B] ${className}`}>{children}</p>
+    <p className={`text-xs text-slate-500 leading-relaxed ${className}`}>{children}</p>
   );
 }
 
@@ -68,7 +72,7 @@ interface CardContentProps {
 
 export function CardContent({ children, className = '' }: CardContentProps) {
   return (
-    <div className={`pt-3 ${className}`}>{children}</div>
+    <div className={`pt-4 ${className}`}>{children}</div>
   );
 }
 
@@ -79,7 +83,7 @@ interface CardFooterProps {
 
 export function CardFooter({ children, className = '' }: CardFooterProps) {
   return (
-    <div className={`mt-4 border-t border-[#D8D7D0] pt-3 flex items-center justify-between ${className}`}>
+    <div className={`mt-5 border-t border-slate-100 pt-4 flex items-center justify-between ${className}`}>
       {children}
     </div>
   );

@@ -158,6 +158,10 @@ class ApiClient {
     return this.request<ComplaintItem[]>(`/api/complaints${qs}`);
   }
 
+  async getComplaint(identifier: string): Promise<ComplaintItem> {
+    return this.request<ComplaintItem>(`/api/complaints/${identifier}`);
+  }
+
   async submitComplaint(data: {
     title: string;
     description: string;

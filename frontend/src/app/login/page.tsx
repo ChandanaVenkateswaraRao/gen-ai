@@ -16,6 +16,8 @@ import {
   Sparkles,
   Home,
   CheckCircle2,
+  ShieldCheck,
+  KeyRound,
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 
@@ -25,32 +27,21 @@ interface RoleOption {
   value: 'student' | 'admin';
   label: string;
   icon: React.ElementType;
-  desc: string[];
+  desc: string;
 }
 
 const ROLE_OPTIONS: RoleOption[] = [
   {
     value: 'student',
-    label: 'Student / Resident',
+    label: 'Resident Student',
     icon: GraduationCap,
-    desc: [
-      'Access mess menus and dining schedule',
-      'View hostel announcements and circulars',
-      'Submit and track maintenance complaints',
-      'Access AI hostel assistant',
-    ],
+    desc: 'Mess menus, AI assistant, maintenance desk',
   },
   {
     value: 'admin',
-    label: 'Administrator',
+    label: 'Hostel Admin',
     icon: Shield,
-    desc: [
-      'Manage hostel operations and staff',
-      'Upload and manage policy documents',
-      'Publish official notices and circulars',
-      'Resolve complaints and triage work orders',
-      'Manage mess schedules and audit logs',
-    ],
+    desc: 'Governance, triage queue, mess editor',
   },
 ];
 
@@ -155,377 +146,348 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#EAF4FF]">
-      <main className="flex-1 relative overflow-hidden">
-        {/* Background glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full bg-indigo/20 blur-[120px] -top-[200px]" />
-        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] rounded-full bg-[#021861]/10 blur-[120px] -bottom-[100px]" />
+    <div className="flex min-h-screen flex-col bg-[#F8FAFC] selection:bg-indigo-500 selection:text-white">
+      <main className="flex-1 relative flex">
+        {/* Split Screen Container */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-screen w-full">
+          {/* Left Panel: Deep Obsidian Branding (5 cols) */}
+          <div className="lg:col-span-5 bg-[#070B19] text-white p-8 lg:p-14 flex flex-col justify-between border-r border-white/10 relative overflow-hidden">
+            {/* Subtle radial glow */}
+            <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-600/15 blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-0 right-0 w-80 h-80 bg-blue-600/10 blur-[100px] pointer-events-none" />
 
-        {/* Two-column grid layout */}
-        <div
-          className={`relative z-10 min-h-screen w-full ${mounted ? 'animate-fade-in' : 'opacity-0'} transition-opacity duration-500`}
-          style={{ animationDelay: '100ms' }}
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
-            {/* Left Panel: Midnight Navy Branding */}
-            <div
-              className="flex flex-col lg:flex-col bg-[#021861] text-white p-6 lg:p-12 justify-between border-r border-[#1F3A8C]/40 min-w-0"
-            >
-              <div className="space-y-8">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 rounded-xl bg-indigo flex items-center justify-center shadow-glow">
-                    <Building2 className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-semibold tracking-wider text-[#93B8FC] uppercase">HostelIQ AI</div>
-                    <div className="text-xl font-bold poppins tracking-tight">HostelIQ AI</div>
-                  </div>
+            <div className="relative z-10 space-y-10">
+              {/* Brand Header */}
+              <div className="flex items-center space-x-3">
+                <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-blue-500 text-white shadow-glow">
+                  <Building2 className="h-6 w-6" />
                 </div>
-
-                <div className="space-y-4">
-                  <h2 className="text-3xl lg:text-4xl font-bold poppins tracking-tight leading-tight">
-                    {mode === 'login' ? 'Welcome Back!' : 'Join HostelIQ AI'}
-                  </h2>
-                  <p className="text-[#C7D2FE] text-sm lg:text-base leading-relaxed max-w-md">
-                    {mode === 'login'
-                      ? 'Sign in to access your HostelIQ AI portal — intelligent hostel and residential life management.'
-                      : 'Create your verified account with your institutional @klu.ac.in email to access hostel services.'}
-                  </p>
-                </div>
-
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-xs font-semibold text-[#93B8FC] uppercase tracking-wider mb-3">University Hostels</h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-3 text-sm text-[#C7D2FE]">
-                        <Building2 className="h-4 w-4 text-[#93B8FC] shrink-0" />
-                        <div>
-                          <span className="font-medium text-white">Kalasalingam Academy</span>
-                          <span className="text-[10px] text-[#647794] block">of Research and Education</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-3 text-sm text-[#C7D2FE]">
-                        <Building2 className="h-4 w-4 text-[#93B8FC] shrink-0" />
-                        <span>7 residential hostels across campus</span>
-                      </div>
-                    </div>
+                <div>
+                  <div className="text-sm font-bold tracking-tight text-white poppins flex items-center gap-2">
+                    <span>HostelIQ AI</span>
+                    <span className="rounded-full bg-indigo-500/20 border border-indigo-400/30 px-2 py-0.2 text-[9px] font-semibold text-indigo-300">
+                      2.0
+                    </span>
                   </div>
-
-                  <div className="pt-4 border-t border-[#1F3A8C]/40">
-                    <h3 className="text-xs font-semibold text-[#93B8FC] uppercase tracking-wider mb-3">Institutional Policy</h3>
-                    <div className="space-y-2">
-                      <div className="flex items-start space-x-2 text-sm text-[#C7D2FE]">
-                        <CheckCircle2 className="h-4 w-4 text-[#93B8FC] shrink-0 mt-0.5" />
-                        <span>All student residents and administrators must use an <strong>@klu.ac.in</strong> email address.</span>
-                      </div>
-                      <div className="flex items-start space-x-2 text-sm text-[#C7D2FE]">
-                        <Sparkles className="h-4 w-4 text-[#93B8FC] shrink-0 mt-0.5" />
-                        <span>AI-powered policy assistant grounded in official university regulations.</span>
-                      </div>
-                    </div>
+                  <div className="text-[11px] text-slate-400 font-medium">
+                    Kalasalingam University
                   </div>
                 </div>
               </div>
 
-              <div className="border-t border-[#1F3A8C]/40 pt-6">
-                <p className="text-[10px] text-[#647794] tracking-wide uppercase">
-                  Kalasalingam Academy of Research and Education &bull; Institutional Authentication
+              {/* Tagline */}
+              <div className="space-y-3">
+                <div className="inline-flex items-center space-x-2 rounded-full border border-indigo-400/20 bg-indigo-500/10 px-3 py-1 text-xs text-indigo-300">
+                  <Sparkles className="h-3 w-3 text-indigo-400" />
+                  <span>Verified Institutional Access</span>
+                </div>
+                <h2 className="text-3xl lg:text-4xl font-bold poppins tracking-tight leading-tight text-white">
+                  {mode === 'login' ? 'Welcome Back.' : 'Create Account.'}
+                </h2>
+                <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-sm">
+                  {mode === 'login'
+                    ? 'Sign in to access your mess schedules, AI policy intelligence, and maintenance grievances.'
+                    : 'Register with your verified @klu.ac.in institutional email to access student or administrator services.'}
                 </p>
+              </div>
+
+              {/* Feature Points */}
+              <div className="space-y-4 pt-4 border-t border-white/10">
+                <div className="flex items-start space-x-3 text-xs text-slate-300">
+                  <div className="h-5 w-5 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 mt-0.5">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                  </div>
+                  <div>
+                    <strong className="text-white block font-medium">Strict Domain Security</strong>
+                    Both residents and administrators must authenticate with official @klu.ac.in credentials.
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3 text-xs text-slate-300">
+                  <div className="h-5 w-5 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 mt-0.5">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                  </div>
+                  <div>
+                    <strong className="text-white block font-medium">Grounding Integrity</strong>
+                    Policy questions answered strictly from verified handbook chunks with zero hallucinations.
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Right Panel: Form Card */}
-            <div
-              className="flex flex-col items-center justify-center bg-[#EAF4FF] p-6 md:p-10 lg:static lg:h-full lg:p-16 lg:border-l border-[#DCE6F2] min-w-0 relative"
-            >
-              <div className="w-full max-w-md space-y-6">
-                {/* Mobile header branding */}
-                <div className="lg:hidden flex items-center space-x-3 mb-6">
-                  <div className="w-12 h-12 rounded-xl bg-indigo flex items-center justify-center shadow-glow">
-                    <Building2 className="h-6 w-6 text-white" />
-                  </div>
+            {/* Bottom Footer Note */}
+            <div className="relative z-10 pt-8 border-t border-white/10 text-[11px] text-slate-400 flex items-center justify-between">
+              <span>KARE Institutional Gateway</span>
+              <span>Academic Year 2026</span>
+            </div>
+          </div>
+
+          {/* Right Panel: Clean Luminous Form (7 cols) */}
+          <div className="lg:col-span-7 flex flex-col items-center justify-center p-6 md:p-12 lg:p-16 bg-[#F8FAFC]">
+            <div className="w-full max-w-md space-y-6 animate-fade-in">
+              {/* Tab Switcher */}
+              <div className="flex rounded-2xl bg-slate-200/70 p-1.5 shadow-inner">
+                <button
+                  type="button"
+                  onClick={() => handleModeSwitch('login')}
+                  className={`flex-1 py-2.5 text-xs font-semibold rounded-xl transition-all ${
+                    mode === 'login'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleModeSwitch('register')}
+                  className={`flex-1 flex items-center justify-center space-x-1.5 py-2.5 text-xs font-semibold rounded-xl transition-all ${
+                    mode === 'register'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <UserPlus className="h-3.5 w-3.5" />
+                  <span>Register</span>
+                </button>
+              </div>
+
+              {/* Form Heading */}
+              <div>
+                <h3 className="text-2xl font-bold tracking-tight text-slate-900 poppins">
+                  {mode === 'login' ? 'Sign In to Portal' : 'Register New Account'}
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Enter your university credentials to continue.
+                </p>
+              </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="flex items-start space-x-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-700 animate-slide-down">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-500" />
+                  <span className="leading-relaxed font-medium">{error}</span>
+                </div>
+              )}
+
+              {/* Authentication Form */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Full Name (Registration only) */}
+                {mode === 'register' && (
                   <div>
-                    <div className="text-[10px] font-semibold tracking-wider text-indigo-light uppercase">HostelIQ AI</div>
-                    <div className="text-base font-bold poppins tracking-tight">HostelIQ AI</div>
-                  </div>
-                </div>
-
-                {/* Mode Selector Tabs */}
-                <div className="flex rounded-xl bg-[#DCE6F2]/70 p-1.5 shadow-inner">
-                  <button
-                    type="button"
-                    onClick={() => handleModeSwitch('login')}
-                    className={`flex-1 flex items-center justify-center space-x-2 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                      mode === 'login'
-                        ? 'bg-white text-[#021861] shadow-sm'
-                        : 'text-[#647794] hover:text-[#021861]'
-                    }`}
-                  >
-                    <span>Sign In</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleModeSwitch('register')}
-                    className={`flex-1 flex items-center justify-center space-x-2 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                      mode === 'register'
-                        ? 'bg-white text-[#021861] shadow-sm'
-                        : 'text-[#647794] hover:text-[#021861]'
-                    }`}
-                  >
-                    <UserPlus className="h-4 w-4" />
-                    <span>Register</span>
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  <h2 className="text-2xl lg:text-3xl font-bold poppins tracking-tight text-[#101C3A]">
-                    {mode === 'login' ? 'Welcome Back!' : 'Create an Account'}
-                  </h2>
-                  <p className="text-secondary text-sm">
-                    {mode === 'login'
-                      ? 'Sign in to access your HostelIQ AI portal.'
-                      : 'Register using your @klu.ac.in institutional email address.'}
-                  </p>
-                </div>
-
-                {error && (
-                  <div className="flex items-start space-x-3 rounded-lg border border-[#DC143C]/30 bg-[#FDF2F2] p-3">
-                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#DC143C]" />
-                    <span className="text-xs text-[#DC143C] leading-relaxed">{error}</span>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                      Full Name
+                    </label>
+                    <div className="relative">
+                      <UserIcon className="absolute left-3.5 top-1/2 -mt-2 h-4 w-4 text-slate-400" />
+                      <input
+                        id="fullName"
+                        type="text"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="e.g. Rohan Sharma"
+                        className={`block w-full rounded-xl border bg-white py-3 pl-10 pr-4 text-xs sm:text-sm text-slate-900 shadow-subtle transition-all focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/15 focus:outline-none ${
+                          fieldErrors.fullName ? 'border-rose-400 ring-1 ring-rose-400' : 'border-slate-200'
+                        }`}
+                      />
+                    </div>
+                    {fieldErrors.fullName && <p className="mt-1 text-xs text-rose-500">{fieldErrors.fullName}</p>}
                   </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Full Name (Registration only) */}
-                  {mode === 'register' && (
+                {/* Email */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                      Institutional Email Address
+                    </label>
+                    <span className="text-[11px] font-semibold text-indigo-600">@klu.ac.in</span>
+                  </div>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 -mt-2 h-4 w-4 text-slate-400" />
+                    <input
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="yourname@klu.ac.in"
+                      className={`block w-full rounded-xl border bg-white py-3 pl-10 pr-4 text-xs sm:text-sm text-slate-900 shadow-subtle transition-all focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/15 focus:outline-none ${
+                        fieldErrors.email ? 'border-rose-400 ring-1 ring-rose-400' : 'border-slate-200'
+                      }`}
+                    />
+                  </div>
+                  {fieldErrors.email ? (
+                    <p className="mt-1 text-xs text-rose-500">{fieldErrors.email}</p>
+                  ) : (
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Must end with <strong className="text-slate-700">@klu.ac.in</strong> for residents and administrators.
+                    </p>
+                  )}
+                </div>
+
+                {/* Password */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                      Password
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+                    >
+                      {showPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 -mt-2 h-4 w-4 text-slate-400" />
+                    <input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className={`block w-full rounded-xl border bg-white py-3 pl-10 pr-4 text-xs sm:text-sm text-slate-900 shadow-subtle transition-all focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/15 focus:outline-none ${
+                        fieldErrors.password ? 'border-rose-400 ring-1 ring-rose-400' : 'border-slate-200'
+                      }`}
+                    />
+                  </div>
+                  {fieldErrors.password && <p className="mt-1 text-xs text-rose-500">{fieldErrors.password}</p>}
+                </div>
+
+                {/* Role Cards */}
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-2">
+                    {mode === 'register' ? 'Registering As' : 'Access Role'}
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {ROLE_OPTIONS.map((opt) => {
+                      const Icon = opt.icon;
+                      const isSelected = role === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setRole(opt.value)}
+                          className={`btn-press flex flex-col items-center rounded-2xl border p-3.5 text-center transition-all ${
+                            isSelected
+                              ? 'border-indigo-600 bg-indigo-50/50 shadow-sm ring-1 ring-indigo-600'
+                              : 'border-slate-200 bg-white hover:border-slate-300'
+                          }`}
+                        >
+                          <Icon className={`h-5 w-5 mb-1.5 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}`} />
+                          <span className={`text-xs font-bold leading-tight ${isSelected ? 'text-indigo-950' : 'text-slate-800'}`}>
+                            {opt.label}
+                          </span>
+                          <span className="text-[10px] text-slate-500 mt-1 line-clamp-1">
+                            {opt.desc}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Student specific fields */}
+                {mode === 'register' && role === 'student' && (
+                  <div className="grid grid-cols-2 gap-3 pt-1">
                     <div>
-                      <label className="block text-sm font-semibold text-[#101C3A] mb-1.5">
-                        Full Name
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Room Number
                       </label>
                       <div className="relative">
-                        <UserIcon className="absolute left-3 top-1/2 -mt-2 h-4 w-4 text-[#647794]" />
+                        <Home className="absolute left-3 top-1/2 -mt-2 h-3.5 w-3.5 text-slate-400" />
                         <input
-                          id="fullName"
+                          id="roomNumber"
                           type="text"
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
-                          placeholder="e.g. John Doe"
-                          className={`block w-full rounded-lg border py-3 pl-10 pr-4 text-sm text-[#101C3A] transition-smooth focus:border-indigo focus:ring-1 focus:ring-indigo focus:outline-none ${
-                            fieldErrors.fullName ? 'border-[#DC143C] focus:ring-[#DC143C]' : 'border-[#DCE6F2]'
-                          }`}
+                          value={roomNumber}
+                          onChange={(e) => setRoomNumber(e.target.value)}
+                          placeholder="e.g. B-304"
+                          className="block w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-xs text-slate-900 shadow-subtle focus:border-indigo-600 focus:outline-none"
                         />
                       </div>
-                      {fieldErrors.fullName && <p className="mt-1 text-xs text-[#DC143C]">{fieldErrors.fullName}</p>}
                     </div>
-                  )}
-
-                  {/* Email */}
-                  <div>
-                    <label className="block text-sm font-semibold text-[#101C3A] mb-1.5">
-                      Institutional Email Address
-                      <span className="ml-1 text-xs font-normal text-indigo">(@klu.ac.in)</span>
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -mt-2 h-4 w-4 text-[#647794]" />
-                      <input
-                        id="email"
-                        type="email"
-                        autoComplete="email"
-                        autoCapitalize="none"
-                        spellCheck={false}
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="yourname@klu.ac.in"
-                        className={`block w-full rounded-lg border py-3 pl-10 pr-4 text-sm text-[#101C3A] transition-smooth focus:border-indigo focus:ring-1 focus:ring-indigo focus:outline-none ${
-                          fieldErrors.email ? 'border-[#DC143C] focus:ring-[#DC143C]' : 'border-[#DCE6F2]'
-                        }`}
-                      />
-                    </div>
-                    {fieldErrors.email ? (
-                      <p className="mt-1 text-xs text-[#DC143C]">{fieldErrors.email}</p>
-                    ) : (
-                      <p className="mt-1 text-[11px] text-[#647794]">
-                        Must end with <strong>@klu.ac.in</strong> for both students and staff.
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Password */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-sm font-semibold text-[#101C3A]">Password</label>
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="text-xs text-indigo hover:text-indigo-light transition-colors"
-                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Hostel / Block
+                      </label>
+                      <select
+                        id="blockName"
+                        value={blockName}
+                        onChange={(e) => setBlockName(e.target.value)}
+                        className="block w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-xs text-slate-900 shadow-subtle focus:border-indigo-600 focus:outline-none"
                       >
-                        {showPassword ? 'Hide' : 'Show'}
-                      </button>
-                    </div>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -mt-2 h-4 w-4 text-[#647794]" />
-                      <input
-                        id="password"
-                        type={showPassword ? 'text' : 'password'}
-                        autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="At least 8 characters"
-                        className={`block w-full rounded-lg border py-3 pl-10 pr-4 text-sm text-[#101C3A] transition-smooth focus:border-indigo focus:ring-1 focus:ring-indigo focus:outline-none ${
-                          fieldErrors.password ? 'border-[#DC143C] focus:ring-[#DC143C]' : 'border-[#DCE6F2]'
-                        }`}
-                      />
-                    </div>
-                    {fieldErrors.password && <p className="mt-1 text-xs text-[#DC143C]">{fieldErrors.password}</p>}
-                  </div>
-
-                  {/* Role Selector */}
-                  <div>
-                    <label className="block text-sm font-semibold text-[#101C3A] mb-2">
-                      {mode === 'register' ? 'I am registering as' : 'I am accessing as'}
-                    </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {ROLE_OPTIONS.map((option) => {
-                        const Icon = option.icon;
-                        const isSelected = role === option.value;
-                        return (
-                          <button
-                            key={option.value}
-                            type="button"
-                            onClick={() => setRole(option.value)}
-                            className={`flex flex-col items-center rounded-lg border p-3.5 transition-smooth ${
-                              isSelected
-                                ? 'border-indigo bg-[#EAF4FF] text-[#021861] shadow-[0_0_15px_rgba(63,81,181,0.15)] ring-1 ring-indigo'
-                                : 'border-[#DCE6F2] bg-[#FFFFFF] text-[#101C3A] hover:border-indigo/50 hover:bg-[#F5F7FC]'
-                            }`}
-                          >
-                            <Icon className={`h-5 w-5 mb-2 ${isSelected ? 'text-[#021861]' : 'text-[#647794]'}`} />
-                            <div className="flex flex-col items-center space-y-1 w-full text-center">
-                              <span className="block text-sm font-semibold leading-tight">{option.label}</span>
-                              <span className="block text-[10px] text-[#647794] leading-tight">{option.desc[0]}</span>
-                            </div>
-                          </button>
-                        );
-                      })}
+                        <option value="Block B (Aryabhatta Hall)">Block B (Aryabhatta Hall)</option>
+                        <option value="Block G (Gargi Hall)">Block G (Gargi Hall)</option>
+                        <option value="Block C (Ramanujan Hall)">Block C (Ramanujan Hall)</option>
+                        <option value="Block D (Tagore Hall)">Block D (Tagore Hall)</option>
+                      </select>
                     </div>
                   </div>
+                )}
 
-                  {/* Room & Block (Registration + Student only) */}
-                  {mode === 'register' && role === 'student' && (
-                    <div className="grid grid-cols-2 gap-3 pt-1">
-                      <div>
-                        <label className="block text-xs font-semibold text-[#101C3A] mb-1">
-                          Room Number
-                        </label>
-                        <div className="relative">
-                          <Home className="absolute left-3 top-1/2 -mt-2 h-4 w-4 text-[#647794]" />
-                          <input
-                            id="roomNumber"
-                            type="text"
-                            value={roomNumber}
-                            onChange={(e) => setRoomNumber(e.target.value)}
-                            placeholder="e.g. B-304"
-                            className="block w-full rounded-lg border border-[#DCE6F2] py-2.5 pl-9 pr-3 text-sm text-[#101C3A] transition-smooth focus:border-indigo focus:ring-1 focus:ring-indigo focus:outline-none"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-[#101C3A] mb-1">
-                          Hostel / Block
-                        </label>
-                        <select
-                          id="blockName"
-                          value={blockName}
-                          onChange={(e) => setBlockName(e.target.value)}
-                          className="block w-full rounded-lg border border-[#DCE6F2] py-2.5 px-3 text-sm text-[#101C3A] bg-white transition-smooth focus:border-indigo focus:ring-1 focus:ring-indigo focus:outline-none"
-                        >
-                          <option value="Block B (Aryabhatta Hall)">Block B (Aryabhatta Hall)</option>
-                          <option value="Block G (Gargi Hall)">Block G (Gargi Hall)</option>
-                          <option value="Block C (Ramanujan Hall)">Block C (Ramanujan Hall)</option>
-                          <option value="Block D (Tagore Hall)">Block D (Tagore Hall)</option>
-                        </select>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className={`inline-flex w-full items-center justify-center space-x-2 rounded-xl py-3.5 px-6 text-sm font-bold transition-smooth disabled:opacity-60 disabled:cursor-not-allowed ${
-                      loading
-                        ? 'bg-[#647794] text-white'
-                        : 'bg-[#021861] text-white hover:bg-indigo focus:outline-none focus:ring-2 focus:ring-indigo focus:ring-offset-2'
-                    }`}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>{mode === 'register' ? 'Creating account…' : 'Signing in…'}</span>
-                      </>
-                    ) : mode === 'register' ? (
-                      <>
-                        <UserPlus className="h-4 w-4" />
-                        <span>Register Account</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>Sign In</span>
-                        <ArrowRight className="h-4 w-4" />
-                      </>
-                    )}
-                  </button>
-                </form>
-
-                {/* Bottom Toggle */}
-                <div className="border-t border-[#DCE6F2] pt-4 text-center">
-                  {mode === 'login' ? (
-                    <p className="text-xs text-[#647794]">
-                      Don&apos;t have an account yet?{' '}
-                      <button
-                        type="button"
-                        onClick={() => handleModeSwitch('register')}
-                        className="font-semibold text-indigo hover:text-indigo-light underline underline-offset-2 transition-colors"
-                      >
-                        Register here
-                      </button>
-                    </p>
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`btn-press w-full py-3.5 px-6 rounded-2xl text-xs font-semibold text-white shadow-sm flex items-center justify-center space-x-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
+                    loading
+                      ? 'bg-slate-700'
+                      : 'bg-slate-900 hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-900/20'
+                  }`}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>{mode === 'register' ? 'Creating account…' : 'Signing in…'}</span>
+                    </>
+                  ) : mode === 'register' ? (
+                    <>
+                      <UserPlus className="h-4 w-4" />
+                      <span>Create Account</span>
+                    </>
                   ) : (
-                    <p className="text-xs text-[#647794]">
-                      Already have an account?{' '}
-                      <button
-                        type="button"
-                        onClick={() => handleModeSwitch('login')}
-                        className="font-semibold text-indigo hover:text-indigo-light underline underline-offset-2 transition-colors"
-                      >
-                        Sign in instead
-                      </button>
-                    </p>
+                    <>
+                      <span>Sign In</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </>
                   )}
-                </div>
+                </button>
+              </form>
 
-                <div className="pt-2">
-                  <p className="text-[10px] text-[#647794] text-center tracking-wide uppercase">
-                    Institutional single sign-on &bull; Kalasalingam Academy
-                  </p>
-                </div>
+              {/* Bottom Mode Switch Link */}
+              <div className="pt-2 text-center text-xs text-slate-500">
+                {mode === 'login' ? (
+                  <span>
+                    Need a new account?{' '}
+                    <button
+                      type="button"
+                      onClick={() => handleModeSwitch('register')}
+                      className="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
+                    >
+                      Register here
+                    </button>
+                  </span>
+                ) : (
+                  <span>
+                    Already have an account?{' '}
+                    <button
+                      type="button"
+                      onClick={() => handleModeSwitch('login')}
+                      className="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
+                    >
+                      Sign in instead
+                    </button>
+                  </span>
+                )}
               </div>
             </div>
           </div>
         </div>
       </main>
-
-      <footer className="border-t border-[#DCE6F2] bg-white py-6">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-xs text-[#647794]">
-            HostelIQ AI &mdash; Academic Demonstration Portal for Kalasalingam Academy of Research and Education
-          </p>
-          <p className="text-xs text-[#647794] mt-1">
-            Institutional email required (<strong>@klu.ac.in</strong>) for resident students and administrators. Minimum password 8 characters.
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }

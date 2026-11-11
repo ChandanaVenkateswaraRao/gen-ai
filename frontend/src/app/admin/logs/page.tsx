@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ScrollText, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { ScrollText, RefreshCw, CheckCircle2, Shield, Search, Terminal, Clock, User } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { api } from '@/lib/api';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -12,6 +12,7 @@ export default function AdminLogsPage() {
   const [totalEvents, setTotalEvents] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [filterQuery, setFilterQuery] = useState('');
 
   useEffect(() => {
     loadLogs();
@@ -35,129 +36,138 @@ export default function AdminLogsPage() {
     switch (eventType) {
       case 'document_uploaded':
         return (
-          <span className="rounded border border-[#021861]/30 bg-[#EAF4FF] px-2 py-0.5 text-[10px] font-semibold text-[#021861] font-mono">
+          <span className="rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700 font-mono">
             DOC_INGESTION
           </span>
         );
       case 'complaint_created':
         return (
-          <span className="rounded border border-[#DC143C]/40 bg-[#FDF2F2] px-2 py-0.5 text-[10px] font-semibold text-[#DC143C] font-mono">
+          <span className="rounded-md border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-700 font-mono">
             COMPLAINT_FILED
           </span>
         );
       case 'complaint_status_updated':
         return (
-          <span className="rounded border border-[#3F51B5]/30 bg-[#EAF4FF] px-2 py-0.5 text-[10px] font-semibold text-[#3F51B5] font-mono">
+          <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 font-mono">
             STATUS_UPDATED
           </span>
         );
       case 'menu_updated':
         return (
-          <span className="rounded border border-[#021861]/30 bg-[#EAF4FF] px-2 py-0.5 text-[10px] font-semibold text-[#021861] font-mono">
+          <span className="rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 font-mono">
             MENU_ALTERATION
+          </span>
+        );
+      case 'user_registered':
+        return (
+          <span className="rounded-md border border-purple-200 bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-700 font-mono">
+            USER_REGISTERED
           </span>
         );
       default:
         return (
-          <span className="rounded border border-[#DCE6F2] bg-[#FFFFFF] px-2 py-0.5 text-[10px] font-semibold text-[#101C3A] font-mono">
-            {eventType.toUpperCase()}
+          <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-bold text-slate-700 font-mono">
+            {eventType?.toUpperCase() || 'SYSTEM_EVENT'}
           </span>
         );
     }
   };
 
+  const filteredLogs = logs.filter((log) => {
+    if (!filterQuery) return true;
+    const q = filterQuery.toLowerCase();
+    return (
+      (log.action || '').toLowerCase().includes(q) ||
+      (log.details ? JSON.stringify(log.details).toLowerCase() : '').includes(q) ||
+      (log.user_id || '').toLowerCase().includes(q)
+    );
+  });
+
   return (
-    <div className="space-y-6">
-      {/* Page Title */}
-      <div className="flex flex-col justify-between gap-3 border-b border-[#DCE6F2] pb-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-lg font-semibold tracking-tight text-[#101C3A] poppins">
-            System Activity & Ingestion Audit Trail
-          </h1>
-          <p className="mt-0.5 text-xs text-[#647794]">
-            Immutable system logs tracking document vectorization, database transactions, and administrative changes.
-          </p>
-        </div>
-        <div>
-          <button
-            onClick={loadLogs}
-            disabled={loading}
-            className="inline-flex items-center space-x-1.5 rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] px-3 py-1.5 text-xs font-medium text-[#101C3A] hover:bg-[#EAF4FF]"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh Audit Logs</span>
-          </button>
+    <div className="mx-auto max-w-5xl space-y-8 animate-fade-in pb-16">
+      {/* Header Banner */}
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-card">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-slate-500/10 to-transparent blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-1.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              Compliance &amp; System Audits
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 poppins">
+              System Activity &amp; Ingestion Audit Trail
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-xl">
+              Immutable system logs recording document vectorization, dining updates, user registrations, and administrative triage actions.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={loadLogs}
+              disabled={loading}
+              className="btn-press inline-flex items-center space-x-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-subtle shrink-0 self-start sm:self-auto disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-indigo-600' : 'text-slate-500'}`} />
+              <span>Refresh Trail</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {error && (
-        <div className="rounded-md border border-[#DC143C]/30 bg-[#FDF2F2] p-4 text-xs text-[#DC143C]">
-          <div className="font-semibold">Log Retrieval Error</div>
-          <p className="mt-0.5">{error}</p>
-        </div>
-      )}
+      {/* Search Filter Bar */}
+      <div className="relative">
+        <Search className="absolute left-3.5 top-1/2 -mt-2 h-4 w-4 text-slate-400" />
+        <input
+          type="text"
+          value={filterQuery}
+          onChange={(e) => setFilterQuery(e.target.value)}
+          placeholder="Filter audit logs by action, payload keyword, or user identifier…"
+          className="w-full rounded-2xl border border-slate-200/90 bg-white py-3 pl-10 pr-4 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 shadow-card focus:border-indigo-600 focus:outline-none"
+        />
+      </div>
 
-      {/* Audit Logs Table */}
-      <div className="rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] shadow-card">
-        <div className="border-b border-[#DCE6F2] px-5 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <ScrollText className="h-4 w-4 text-[#101C3A]" />
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-[#101C3A] poppins">
-              System Audit Entries ({totalEvents})
-            </h2>
+      {/* Logs Table / Cards */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-card overflow-hidden">
+        <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between text-xs text-slate-500">
+          <span className="font-semibold text-slate-700">Audit Events ({filteredLogs.length} of {totalEvents})</span>
+          <span className="font-mono text-[11px] text-slate-400">Chronological • UTC</span>
+        </div>
+
+        {loading ? (
+          <div className="py-12 text-center text-xs text-slate-400">Loading audit trail…</div>
+        ) : filteredLogs.length > 0 ? (
+          <div className="divide-y divide-slate-100">
+            {filteredLogs.map((log, idx) => (
+              <div key={idx} className="p-4 hover:bg-slate-50/50 transition-colors space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center space-x-2">
+                    {getEventBadge(log.action)}
+                    <span className="font-mono text-[11px] text-slate-400 font-medium">
+                      {log.timestamp ? log.timestamp.replace('T', ' ').slice(0, 19) : '—'}
+                    </span>
+                  </div>
+
+                  <span className="text-[10px] font-mono text-slate-400">
+                    ID: {log.id ? String(log.id).slice(0, 8) : `LOG-${idx + 1}`}
+                  </span>
+                </div>
+
+                {log.details && (
+                  <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-2.5 font-mono text-[11px] text-slate-700 whitespace-pre-wrap break-all">
+                    {typeof log.details === 'object' ? JSON.stringify(log.details, null, 2) : String(log.details)}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-          <span className="text-[11px] text-[#647794]">
-            All records committed to database
-          </span>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="border-b border-[#DCE6F2] bg-[#EAF4FF]/50 text-[11px] font-semibold uppercase text-[#647794]">
-              <tr>
-                <th className="px-5 py-3">Timestamp (UTC)</th>
-                <th className="px-5 py-3">Event Type</th>
-                <th className="px-5 py-3">Transaction Details</th>
-                <th className="px-5 py-3 text-right">Execution Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#DCE6F2] font-mono text-[11px]">
-              {logs.length > 0 ? (
-                logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-[#F5F7FF] align-top">
-                    <td className="px-5 py-3 text-[#647794] whitespace-nowrap">
-                      {log.timestamp.replace('T', ' ').slice(0, 19)}
-                    </td>
-                    <td className="px-5 py-3 whitespace-nowrap">
-                      {getEventBadge(log.event_type)}
-                    </td>
-                    <td className="px-5 py-3 text-[#101C3A]">
-                      <pre className="text-[11px] font-mono leading-relaxed whitespace-pre-wrap max-w-xl">
-                        {JSON.stringify(log.details, null, 2)}
-                      </pre>
-                    </td>
-                    <td className="px-5 py-3 text-right whitespace-nowrap font-sans">
-                      <span className="inline-flex items-center space-x-1 text-[#3F51B5] font-medium">
-                        <CheckCircle2 className="h-3 w-3" />
-                        <span>Success</span>
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={4}>
-                    <EmptyState
-                      icon={ScrollText}
-                      title="No system log events"
-                      description="No audit events have been recorded yet."
-                    />
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        ) : (
+          <EmptyState
+            icon={ScrollText}
+            title="No audit events found"
+            description="Audit events will appear here automatically when actions occur in the portal."
+          />
+        )}
       </div>
     </div>
   );

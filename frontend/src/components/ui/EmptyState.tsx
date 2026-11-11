@@ -12,12 +12,12 @@ interface EmptyStateProps {
 }
 
 const accentStyles: Record<string, string> = {
-  indigo: 'border-[#3F51B5]/30 bg-[#EAF4FF] text-[#3F51B5]',
-  crimson: 'border-[#DC143C]/40 bg-[#FDF2F2] text-[#DC143C]',
-  success: 'border-[#3F51B5]/30 bg-[#EAF4FF] text-[#3F51B5]',
-  warning: 'border-[#DC143C]/40 bg-[#FDF2F2] text-[#DC143C]',
-  error: 'border-[#DC143C]/30 bg-[#FDF2F2] text-[#DC143C]',
-  neutral: 'border-[#DCE6F2] bg-[#FFFFFF] text-[#647794]',
+  indigo: 'border-indigo-100 bg-indigo-50 text-indigo-600 shadow-sm shadow-indigo-100',
+  crimson: 'border-rose-100 bg-rose-50 text-rose-600 shadow-sm shadow-rose-100',
+  success: 'border-emerald-100 bg-emerald-50 text-emerald-600 shadow-sm shadow-emerald-100',
+  warning: 'border-amber-100 bg-amber-50 text-amber-600 shadow-sm shadow-amber-100',
+  error: 'border-rose-100 bg-rose-50 text-rose-600 shadow-sm shadow-rose-100',
+  neutral: 'border-slate-200 bg-slate-50 text-slate-600 shadow-sm',
 };
 
 export function EmptyState({
@@ -31,21 +31,25 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
-      className={`rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] p-8 text-center transition-smooth hover:border-[#3F51B5]/50 ${className}`}
+      className={`rounded-2xl border border-slate-200/90 bg-white p-8 sm:p-12 text-center shadow-card transition-all ${className}`}
     >
-      <div className={`mx-auto flex h-11 w-11 items-center justify-center rounded-lg bg-[#FFFFFF] ${accentStyles[accent]}`}>
-        <Icon className="h-5 w-5" />
+      <div
+        className={`mx-auto flex h-12 w-12 items-center justify-center rounded-xl border ${
+          accentStyles[accent] || accentStyles.neutral
+        }`}
+      >
+        <Icon className="h-6 w-6" />
       </div>
-      <h3 className="mt-3 text-xs font-semibold text-[#101C3A]">{title}</h3>
-      <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-[#647794]">
+      <h3 className="mt-4 text-sm font-semibold tracking-tight text-slate-900">{title}</h3>
+      <p className="mx-auto mt-1.5 max-w-sm text-xs leading-relaxed text-slate-500">
         {description}
       </p>
       {actionLabel && onAction && (
-        <div className="mt-5">
+        <div className="mt-6">
           <button
             type="button"
             onClick={onAction}
-            className="inline-flex items-center space-x-1.5 rounded-lg bg-[#021861] px-3.5 py-1.5 text-xs font-medium text-white hover:bg-[#3F51B5] transition-colors"
+            className="btn-press inline-flex items-center space-x-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors focus-visible:ring-2 focus-visible:ring-slate-900/20"
           >
             <span>{actionLabel}</span>
           </button>

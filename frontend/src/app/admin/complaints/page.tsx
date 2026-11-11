@@ -7,6 +7,14 @@ import {
   X,
   RefreshCw,
   CheckCircle2,
+  Sliders,
+  Filter,
+  Clock,
+  Home,
+  User,
+  AlertCircle,
+  Tag,
+  Check,
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { api } from '@/lib/api';
@@ -70,7 +78,7 @@ export default function AdminComplaintsPage() {
         adminNotes.trim() || undefined
       );
 
-      setUpdateSuccess(`Tracking ID ${updated.tracking_id} updated to status "${updated.status}".`);
+      setUpdateSuccess(`Tracking ID ${updated.tracking_id} updated to "${updated.status}".`);
       setEditingComplaint(null);
       loadComplaints();
     } catch (err: any) {
@@ -82,11 +90,11 @@ export default function AdminComplaintsPage() {
 
   const getStatusBadge = (status: ComplaintStatus) => {
     switch (status) {
-      case 'Resolved':   return <Badge variant="success">Resolved</Badge>;
-      case 'In Progress': return <Badge variant="primary">In Progress</Badge>;
-      case 'Under Review': return <Badge variant="info">Under Review</Badge>;
-      case 'Rejected':   return <Badge variant="error">Rejected</Badge>;
-      default:           return <Badge variant="warning">Submitted</Badge>;
+      case 'Resolved': return <Badge variant="success" dot>Resolved</Badge>;
+      case 'In Progress': return <Badge variant="primary" dot>In Progress</Badge>;
+      case 'Under Review': return <Badge variant="info" dot>Under Review</Badge>;
+      case 'Rejected': return <Badge variant="error" dot>Rejected</Badge>;
+      default: return <Badge variant="warning" dot>Submitted</Badge>;
     }
   };
 
@@ -100,247 +108,263 @@ export default function AdminComplaintsPage() {
     );
   });
 
+  const statuses: ComplaintStatus[] = ['Submitted', 'Under Review', 'In Progress', 'Resolved', 'Rejected'];
+
   return (
-    <div className="space-y-6">
-      {/* Page Title */}
-      <div className="border-b border-[#DCE6F2] pb-4">
-        <h1 className="text-lg font-semibold tracking-tight text-[#101C3A] poppins">
-          Complaint Triage &amp; Resolution Desk
-        </h1>
-        <p className="mt-0.5 text-xs text-[#647794]">
-          Review student repair work orders, assign technicians, update lifecycle statuses, and document official resolution remarks.
-        </p>
+    <div className="mx-auto max-w-5xl space-y-8 animate-fade-in pb-16">
+      {/* Header Banner */}
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-card">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-rose-500/10 to-transparent blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-1.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-rose-600">
+              Facility Operations
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 poppins">
+              Complaint Triage &amp; Resolution Desk
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-xl">
+              Review resident work orders, assign maintenance technicians, advance lifecycle stages, and record official resolution notes.
+            </p>
+          </div>
+
+          <button
+            onClick={loadComplaints}
+            disabled={loading}
+            className="btn-press inline-flex items-center space-x-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-subtle shrink-0 self-start sm:self-auto disabled:opacity-50"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-indigo-600' : 'text-slate-500'}`} />
+            <span>Sync Desk</span>
+          </button>
+        </div>
       </div>
 
+      {/* Notifications */}
       {updateSuccess && (
-        <div className="rounded-md border border-[#3F51B5]/40 bg-[#EAF4FF] p-4 text-xs text-[#3F51B5] flex items-center space-x-2">
-          <CheckCircle2 className="h-4 w-4" />
-          <span>{updateSuccess}</span>
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 text-xs text-emerald-800 shadow-card animate-slide-down flex items-start justify-between">
+          <div className="flex items-center space-x-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+            <span>{updateSuccess}</span>
+          </div>
+          <button onClick={() => setUpdateSuccess(null)} className="text-emerald-700 hover:text-emerald-900">
+            <X className="h-3.5 w-3.5" />
+          </button>
         </div>
       )}
 
       {error && (
-        <div className="rounded-md border border-[#DC143C]/30 bg-[#FDF2F2] p-4 text-xs text-[#DC143C]">
-          <div className="font-semibold">Notice</div>
-          <p className="mt-0.5">{error}</p>
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-700 animate-slide-down">
+          {error}
         </div>
       )}
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col justify-between gap-3 rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] p-4 sm:flex-row sm:items-center shadow-card">
-        <div className="flex flex-wrap items-center gap-3">
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#647794]">
-              Filter Status:
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="mt-0.5 rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] px-2.5 py-1 text-xs text-[#101C3A] focus:border-[#3F51B5] focus:outline-none"
-            >
-              <option value="All">All Statuses</option>
-              <option value="Submitted">Submitted (New)</option>
-              <option value="Under Review">Under Review</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Resolved">Resolved</option>
-              <option value="Rejected">Rejected</option>
-            </select>
+      {/* Filters Bar */}
+      <div className="rounded-3xl border border-slate-200/90 bg-white p-5 shadow-card space-y-4">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -mt-2 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Filter by tracking ID, student name, issue title, or room…"
+              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none"
+            />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#647794]">
-              Filter Category:
-            </label>
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="mt-0.5 rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] px-2.5 py-1 text-xs text-[#101C3A] focus:border-[#3F51B5] focus:outline-none"
-            >
-              <option value="All">All Categories</option>
-              <option value="Plumbing">Plumbing</option>
-              <option value="Electrical">Electrical</option>
-              <option value="Carpentry">Carpentry</option>
-              <option value="Cleanliness">Cleanliness</option>
-              <option value="Mess">Mess</option>
-              <option value="Internet">Internet</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-xs text-slate-900 focus:border-indigo-600 focus:outline-none shrink-0"
+          >
+            <option value="All">All Categories</option>
+            <option value="Plumbing">Plumbing</option>
+            <option value="Electrical">Electrical</option>
+            <option value="Internet">Internet / LAN</option>
+            <option value="Furniture">Furniture</option>
+            <option value="Cleanliness">Cleanliness</option>
+          </select>
         </div>
 
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-2.5 h-3.5 w-3.5 text-[#647794]" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search tracking ID, student, room..."
-            className="w-full rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] py-1.5 pl-9 pr-3 text-xs text-[#101C3A] focus:border-[#3F51B5] focus:outline-none sm:w-64"
+        {/* Status Pills */}
+        <div className="flex overflow-x-auto gap-2 pt-2 border-t border-slate-100 scrollbar-none">
+          {['All', 'Submitted', 'Under Review', 'In Progress', 'Resolved', 'Rejected'].map((stg) => (
+            <button
+              key={stg}
+              onClick={() => setStatusFilter(stg)}
+              className={`btn-press whitespace-nowrap rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all ${
+                statusFilter === stg
+                  ? 'bg-slate-900 text-white shadow-sm'
+                  : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              {stg}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Complaints List */}
+      <div className="space-y-4">
+        <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+          Work Orders Queue ({filtered.length})
+        </h2>
+
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-card space-y-2 animate-pulse">
+                <div className="h-4 w-40 bg-slate-200 rounded" />
+                <div className="h-3 w-full bg-slate-100 rounded" />
+              </div>
+            ))}
+          </div>
+        ) : filtered.length > 0 ? (
+          <div className="space-y-3">
+            {filtered.map((c) => (
+              <div
+                key={c.id}
+                className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-card hover-lift transition-all space-y-3"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                  <div className="flex items-center space-x-2.5">
+                    <span className="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md">
+                      {c.tracking_id}
+                    </span>
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                      {c.category}
+                    </span>
+                    <Badge variant={c.priority === 'Urgent' || c.priority === 'High' ? 'error' : 'neutral'}>
+                      {c.priority}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <span className="text-[11px] text-slate-400 font-mono">{c.created_at.slice(0, 10)}</span>
+                    <button
+                      onClick={() => handleOpenEdit(c)}
+                      className="btn-press inline-flex items-center space-x-1.5 rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-slate-800 transition-colors"
+                    >
+                      <Sliders className="h-3 w-3" />
+                      <span>Update Status</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">{c.title}</h3>
+                  <p className="mt-1 text-xs text-slate-600 leading-relaxed">{c.description}</p>
+                </div>
+
+                {c.admin_notes && (
+                  <div className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/70 text-xs text-slate-700">
+                    <strong className="text-slate-900 font-semibold">Warden Remark:</strong> {c.admin_notes}
+                  </div>
+                )}
+
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                  <div className="flex items-center space-x-2">
+                    <User className="h-3.5 w-3.5 text-slate-400" />
+                    <span className="font-semibold text-slate-800">{c.student_name}</span>
+                    <span>&bull;</span>
+                    <Home className="h-3.5 w-3.5 text-slate-400" />
+                    <span>{c.room_number} ({c.block_name})</span>
+                  </div>
+                  {getStatusBadge(c.status)}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            icon={Wrench}
+            title="No grievances in this filter"
+            description="Try changing the category or status filter above."
           />
-        </div>
+        )}
       </div>
 
-      {/* Complaints Table */}
-      <div className="rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] shadow-card">
-        <div className="flex items-center justify-between border-b border-[#DCE6F2] px-5 py-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[#101C3A] poppins">
-            Active Residential Complaints ({filtered.length})
-          </h2>
-          <button onClick={loadComplaints} className="text-xs text-[#647794] hover:text-[#101C3A]">
-            <RefreshCw className="h-3.5 w-3.5" />
-          </button>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="border-b border-[#DCE6F2] bg-[#EAF4FF]/50 text-[11px] font-semibold uppercase text-[#647794]">
-              <tr>
-                <th className="px-5 py-3">Tracking ID</th>
-                <th className="px-5 py-3">Student & Location</th>
-                <th className="px-5 py-3">Issue Category</th>
-                <th className="px-5 py-3">Subject & Details</th>
-                <th className="px-5 py-3">Priority</th>
-                <th className="px-5 py-3">Status</th>
-                <th className="px-5 py-3">Admin Remarks</th>
-                <th className="px-5 py-3 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#DCE6F2]">
-              {filtered.length > 0 ? (
-                filtered.map((item) => (
-                  <tr key={item.id} className="hover:bg-[#F5F7FF] align-top">
-                    <td className="px-5 py-3 font-mono font-medium text-[#101C3A] whitespace-nowrap">
-                      {item.tracking_id}
-                    </td>
-                    <td className="px-5 py-3 whitespace-nowrap">
-                      <div className="font-semibold text-[#101C3A]">{item.student_name}</div>
-                      <div className="text-[11px] text-[#647794]">
-                        {item.room_number}, {item.block_name}
-                      </div>
-                    </td>
-                    <td className="px-5 py-3 text-[#647794] whitespace-nowrap">
-                      {item.category}
-                    </td>
-                    <td className="px-5 py-3 max-w-[240px]">
-                      <div className="font-medium text-[#101C3A]">{item.title}</div>
-                      <div className="text-[11px] text-[#647794] line-clamp-2">
-                        {item.description}
-                      </div>
-                    </td>
-                    <td className="px-5 py-3 whitespace-nowrap">
-                      <span className="font-medium text-[#101C3A]">{item.priority}</span>
-                    </td>
-                    <td className="px-5 py-3 whitespace-nowrap">
-                      {getStatusBadge(item.status)}
-                    </td>
-                    <td className="px-5 py-3 text-[11px] text-[#101C3A] max-w-[200px]">
-                      {item.admin_notes || (
-                        <span className="text-[#647794] italic">No remarks recorded</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3 text-right whitespace-nowrap">
-                      <button
-                        onClick={() => handleOpenEdit(item)}
-                        className="rounded border border-[#DCE6F2] bg-[#FFFFFF] px-2.5 py-1 text-[11px] font-medium text-[#101C3A] hover:bg-[#EAF4FF]"
-                      >
-                        Update Status
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={8} className="py-10">
-                    <EmptyState
-                      icon={Wrench}
-                      title="No complaints found"
-                      description="No complaints match the current filters. Try clearing the status or category filter."
-                    />
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Edit Status Modal */}
+      {/* Update Status Modal */}
       {editingComplaint && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#101C3A]/35 p-4">
-          <div className="w-full max-w-md rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] p-6 shadow-panel space-y-4">
-            <div className="flex items-center justify-between border-b border-[#DCE6F2] pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4 animate-fade-in">
+          <form
+            onSubmit={handleSaveStatus}
+            className="relative w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 animate-slide-down"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <h3 className="text-sm font-semibold text-[#101C3A]">
-                  Update Complaint Status
+                <span className="font-mono text-xs font-bold text-indigo-600">{editingComplaint.tracking_id}</span>
+                <h3 className="text-base font-bold text-slate-900 tracking-tight">
+                  Triage &amp; Update Grievance
                 </h3>
-                <p className="text-[11px] font-mono text-[#021861] font-medium">
-                  {editingComplaint.tracking_id} — {editingComplaint.category}
-                </p>
               </div>
               <button
+                type="button"
                 onClick={() => setEditingComplaint(null)}
-                className="text-[#647794] hover:text-[#101C3A]"
+                className="btn-press rounded-xl p-1.5 text-slate-400 hover:bg-slate-100"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="text-xs text-[#101C3A] bg-[#EAF4FF] p-3 rounded border border-[#DCE6F2]">
-              <div className="font-semibold text-[#101C3A]">{editingComplaint.title}</div>
-              <div className="text-[11px] text-[#647794] mt-0.5">
-                Reported by {editingComplaint.student_name} ({editingComplaint.room_number})
-              </div>
-            </div>
-
-            <form onSubmit={handleSaveStatus} className="space-y-4">
+            <div className="space-y-4 text-xs">
               <div>
-                <label className="block text-xs font-medium text-[#647794]">
-                  New Status
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-2">
+                  Advance Status Stage
                 </label>
-                <select
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value as ComplaintStatus)}
-                  className="mt-1 w-full rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] px-3 py-2 text-xs text-[#101C3A] focus:border-[#3F51B5] focus:outline-none"
-                >
-                  <option value="Submitted">Submitted (New / Unreviewed)</option>
-                  <option value="Under Review">Under Review (Assessing requirements)</option>
-                  <option value="In Progress">In Progress (Technician deployed)</option>
-                  <option value="Resolved">Resolved (Work verified completed)</option>
-                  <option value="Rejected">Rejected (Out of scope / invalid)</option>
-                </select>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {statuses.map((stg) => {
+                    const isSelected = newStatus === stg;
+                    return (
+                      <button
+                        key={stg}
+                        type="button"
+                        onClick={() => setNewStatus(stg)}
+                        className={`btn-press rounded-xl p-2.5 text-xs font-bold transition-all border text-center ${
+                          isSelected
+                            ? 'border-indigo-600 bg-indigo-50/70 text-indigo-900 ring-1 ring-indigo-600'
+                            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        {stg}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#647794]">
-                  Official Administrative Remarks &amp; Technician Notes
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                  Warden Notes &amp; Assigned Technician Remarks
                 </label>
                 <textarea
                   rows={3}
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder="Document assigned staff name, parts replaced, or justification..."
-                  className="mt-1 w-full rounded-lg border border-[#DCE6F2] bg-[#FFFFFF] px-3 py-2 text-xs text-[#101C3A] focus:border-[#3F51B5] focus:outline-none"
+                  placeholder="e.g. Technician Ramesh assigned. Work order scheduled for completion today."
+                  className="w-full rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-900 focus:border-indigo-600 focus:outline-none"
                 />
               </div>
+            </div>
 
-              <div className="flex justify-end space-x-2 pt-2 border-t border-[#DCE6F2]">
-                <button
-                  type="button"
-                  onClick={() => setEditingComplaint(null)}
-                  className="rounded border border-[#DCE6F2] bg-[#FFFFFF] px-3 py-1.5 text-xs text-[#101C3A] hover:bg-[#EAF4FF]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={updating}
-                  className="rounded bg-[#021861] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#3F51B5] disabled:opacity-50"
-                >
-                  {updating ? 'Saving...' : 'Confirm Update'}
-                </button>
-              </div>
-            </form>
-          </div>
+            <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setEditingComplaint(null)}
+                className="btn-press rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={updating}
+                className="btn-press rounded-xl bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 disabled:opacity-50"
+              >
+                {updating ? 'Saving…' : 'Save Status Update'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>
