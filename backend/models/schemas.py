@@ -16,6 +16,14 @@ class UserLoginRequest(BaseModel):
     password: Optional[str] = None
     role: Optional[Literal["student", "admin"]] = None
 
+class UserRegisterRequest(BaseModel):
+    email: str
+    password: str
+    full_name: str
+    role: Literal["student", "admin"] = "student"
+    room_number: Optional[str] = None
+    block_name: Optional[str] = None
+
 # RAG & Document Schemas
 class DocumentChunk(BaseModel):
     id: str

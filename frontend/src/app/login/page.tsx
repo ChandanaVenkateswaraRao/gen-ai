@@ -6,13 +6,16 @@ import {
   Building2,
   Mail,
   Lock,
-  Eye,
+  User as UserIcon,
   GraduationCap,
   Shield,
   ArrowRight,
+  UserPlus,
   AlertCircle,
   Loader2,
   Sparkles,
+  Home,
+  CheckCircle2,
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 
@@ -53,10 +56,14 @@ const ROLE_OPTIONS: RoleOption[] = [
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isAuthenticated, isLoadingAuth, currentUser, currentRole } = useApp();
+  const { login, register, isAuthenticated, isLoadingAuth, currentUser, currentRole } = useApp();
 
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [roomNumber, setRoomNumber] = useState('');
+  const [blockName, setBlockName] = useState('Block B (Aryabhatta Hall)');
   const [role, setRole] = useState<'student' | 'admin'>('student');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -79,10 +86,20 @@ export default function LoginPage() {
     const newErrors: Record<string, string> = {};
     const trimmedEmail = email.trim();
 
+    if (mode === 'register') {
+      if (!fullName.trim()) {
+        newErrors.fullName = 'Full name is required.';
+      } else if (fullName.trim().length < 2) {
+        newErrors.fullName = 'Full name must be at least 2 characters.';
+      }
+    }
+
     if (!trimmedEmail) {
       newErrors.email = 'Email address is required.';
     } else if (!EMAIL_REGEX.test(trimmedEmail)) {
       newErrors.email = 'Please enter a valid email address.';
+    } else if (!trimmedEmail.toLowerCase().endsWith('@klu.ac.in')) {
+      newErrors.email = 'Institutional email required. Both residents and admins must use an @klu.ac.in email.';
     }
 
     if (!password) {
@@ -95,6 +112,12 @@ export default function LoginPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleModeSwitch = (newMode: 'login' | 'register') => {
+    setMode(newMode);
+    setError(null);
+    setFieldErrors({});
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -104,7 +127,19 @@ export default function LoginPage() {
       setError(null);
       setFieldErrors({});
 
-      const user = await login(email.trim(), password, role);
+      let user;
+      if (mode === 'register') {
+        user = await register({
+          email: email.trim().toLowerCase(),
+          password,
+          full_name: fullName.trim(),
+          role,
+          room_number: role === 'student' ? (roomNumber.trim() || undefined) : undefined,
+          block_name: role === 'student' ? (blockName.trim() || undefined) : 'Administrative Block',
+        });
+      } else {
+        user = await login(email.trim().toLowerCase(), password, role);
+      }
 
       if (user.role === 'admin') {
         router.replace('/admin');
@@ -112,7 +147,7 @@ export default function LoginPage() {
         router.replace('/hostel-selection');
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Authentication failed. Please try again.';
+      const msg = err instanceof Error ? err.message : `${mode === 'register' ? 'Registration' : 'Authentication'} failed. Please try again.`;
       setError(msg);
     } finally {
       setLoading(false);
@@ -148,9 +183,13 @@ export default function LoginPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <h2 className="text-3xl lg:text-4xl font-bold poppins tracking-tight leading-tight">Welcome Back!</h2>
+                  <h2 className="text-3xl lg:text-4xl font-bold poppins tracking-tight leading-tight">
+                    {mode === 'login' ? 'Welcome Back!' : 'Join HostelIQ AI'}
+                  </h2>
                   <p className="text-[#C7D2FE] text-sm lg:text-base leading-relaxed max-w-md">
-                    Sign in to access your HostelIQ AI portal &mdash; intelligent hostel and residential life management.
+                    {mode === 'login'
+                      ? 'Sign in to access your HostelIQ AI portal — intelligent hostel and residential life management.'
+                      : 'Create your verified account with your institutional @klu.ac.in email to access hostel services.'}
                   </p>
                 </div>
 
@@ -173,19 +212,16 @@ export default function LoginPage() {
                   </div>
 
                   <div className="pt-4 border-t border-[#1F3A8C]/40">
-                    <h3 className="text-xs font-semibold text-[#93B8FC] uppercase tracking-wider mb-3">Platform Features</h3>
+                    <h3 className="text-xs font-semibold text-[#93B8FC] uppercase tracking-wider mb-3">Institutional Policy</h3>
                     <div className="space-y-2">
-                      {[
-                        'AI-powered policy assistant grounded in approved documents',
-                        'Smart 7-day mess menu and dining schedule',
-                        'Verified complaint tracking with audit IDs',
-                        'Official announcements and circulars board',
-                      ].map((f, i) => (
-                        <div key={i} className="flex items-center space-x-2 text-sm text-[#C7D2FE]">
-                          <Sparkles className="h-3.5 w-3.5 text-[#93B8FC] shrink-0" />
-                          <span>{f}</span>
-                        </div>
-                      ))}
+                      <div className="flex items-start space-x-2 text-sm text-[#C7D2FE]">
+                        <CheckCircle2 className="h-4 w-4 text-[#93B8FC] shrink-0 mt-0.5" />
+                        <span>All student residents and administrators must use an <strong>@klu.ac.in</strong> email address.</span>
+                      </div>
+                      <div className="flex items-start space-x-2 text-sm text-[#C7D2FE]">
+                        <Sparkles className="h-4 w-4 text-[#93B8FC] shrink-0 mt-0.5" />
+                        <span>AI-powered policy assistant grounded in official university regulations.</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -193,12 +229,12 @@ export default function LoginPage() {
 
               <div className="border-t border-[#1F3A8C]/40 pt-6">
                 <p className="text-[10px] text-[#647794] tracking-wide uppercase">
-                  Kalasalingam Academy of Research and Education
+                  Kalasalingam Academy of Research and Education &bull; Institutional Authentication
                 </p>
               </div>
             </div>
 
-            {/* Right Panel: Baby Blue Background with White Login Card */}
+            {/* Right Panel: Form Card */}
             <div
               className="flex flex-col items-center justify-center bg-[#EAF4FF] p-6 md:p-10 lg:static lg:h-full lg:p-16 lg:border-l border-[#DCE6F2] min-w-0 relative"
             >
@@ -214,9 +250,42 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <h2 className="text-2xl lg:text-3xl font-bold poppins tracking-tight text-[#101C3A]">Welcome Back!</h2>
-                  <p className="text-secondary text-sm lg:text-base">Sign in to access your HostelIQ AI portal.</p>
+                {/* Mode Selector Tabs */}
+                <div className="flex rounded-xl bg-[#DCE6F2]/70 p-1.5 shadow-inner">
+                  <button
+                    type="button"
+                    onClick={() => handleModeSwitch('login')}
+                    className={`flex-1 flex items-center justify-center space-x-2 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+                      mode === 'login'
+                        ? 'bg-white text-[#021861] shadow-sm'
+                        : 'text-[#647794] hover:text-[#021861]'
+                    }`}
+                  >
+                    <span>Sign In</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleModeSwitch('register')}
+                    className={`flex-1 flex items-center justify-center space-x-2 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+                      mode === 'register'
+                        ? 'bg-white text-[#021861] shadow-sm'
+                        : 'text-[#647794] hover:text-[#021861]'
+                    }`}
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    <span>Register</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <h2 className="text-2xl lg:text-3xl font-bold poppins tracking-tight text-[#101C3A]">
+                    {mode === 'login' ? 'Welcome Back!' : 'Create an Account'}
+                  </h2>
+                  <p className="text-secondary text-sm">
+                    {mode === 'login'
+                      ? 'Sign in to access your HostelIQ AI portal.'
+                      : 'Register using your @klu.ac.in institutional email address.'}
+                  </p>
                 </div>
 
                 {error && (
@@ -226,10 +295,35 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Full Name (Registration only) */}
+                  {mode === 'register' && (
+                    <div>
+                      <label className="block text-sm font-semibold text-[#101C3A] mb-1.5">
+                        Full Name
+                      </label>
+                      <div className="relative">
+                        <UserIcon className="absolute left-3 top-1/2 -mt-2 h-4 w-4 text-[#647794]" />
+                        <input
+                          id="fullName"
+                          type="text"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          placeholder="e.g. John Doe"
+                          className={`block w-full rounded-lg border py-3 pl-10 pr-4 text-sm text-[#101C3A] transition-smooth focus:border-indigo focus:ring-1 focus:ring-indigo focus:outline-none ${
+                            fieldErrors.fullName ? 'border-[#DC143C] focus:ring-[#DC143C]' : 'border-[#DCE6F2]'
+                          }`}
+                        />
+                      </div>
+                      {fieldErrors.fullName && <p className="mt-1 text-xs text-[#DC143C]">{fieldErrors.fullName}</p>}
+                    </div>
+                  )}
+
+                  {/* Email */}
                   <div>
-                    <label className="block text-sm font-semibold text-[#101C3A] mb-2.5">
-                      Email Address
+                    <label className="block text-sm font-semibold text-[#101C3A] mb-1.5">
+                      Institutional Email Address
+                      <span className="ml-1 text-xs font-normal text-indigo">(@klu.ac.in)</span>
                     </label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -mt-2 h-4 w-4 text-[#647794]" />
@@ -241,17 +335,24 @@ export default function LoginPage() {
                         spellCheck={false}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="name@university.edu"
+                        placeholder="yourname@klu.ac.in"
                         className={`block w-full rounded-lg border py-3 pl-10 pr-4 text-sm text-[#101C3A] transition-smooth focus:border-indigo focus:ring-1 focus:ring-indigo focus:outline-none ${
                           fieldErrors.email ? 'border-[#DC143C] focus:ring-[#DC143C]' : 'border-[#DCE6F2]'
                         }`}
                       />
                     </div>
-                    {fieldErrors.email && <p className="mt-1 text-xs text-[#DC143C]">{fieldErrors.email}</p>}
+                    {fieldErrors.email ? (
+                      <p className="mt-1 text-xs text-[#DC143C]">{fieldErrors.email}</p>
+                    ) : (
+                      <p className="mt-1 text-[11px] text-[#647794]">
+                        Must end with <strong>@klu.ac.in</strong> for both students and staff.
+                      </p>
+                    )}
                   </div>
 
+                  {/* Password */}
                   <div>
-                    <div className="flex items-center justify-between mb-2.5">
+                    <div className="flex items-center justify-between mb-1.5">
                       <label className="block text-sm font-semibold text-[#101C3A]">Password</label>
                       <button
                         type="button"
@@ -267,10 +368,10 @@ export default function LoginPage() {
                       <input
                         id="password"
                         type={showPassword ? 'text' : 'password'}
-                        autoComplete="current-password"
+                        autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
+                        placeholder="At least 8 characters"
                         className={`block w-full rounded-lg border py-3 pl-10 pr-4 text-sm text-[#101C3A] transition-smooth focus:border-indigo focus:ring-1 focus:ring-indigo focus:outline-none ${
                           fieldErrors.password ? 'border-[#DC143C] focus:ring-[#DC143C]' : 'border-[#DCE6F2]'
                         }`}
@@ -279,9 +380,10 @@ export default function LoginPage() {
                     {fieldErrors.password && <p className="mt-1 text-xs text-[#DC143C]">{fieldErrors.password}</p>}
                   </div>
 
+                  {/* Role Selector */}
                   <div>
-                    <label className="block text-sm font-semibold text-[#101C3A] mb-3">
-                      I am accessing as
+                    <label className="block text-sm font-semibold text-[#101C3A] mb-2">
+                      {mode === 'register' ? 'I am registering as' : 'I am accessing as'}
                     </label>
                     <div className="grid grid-cols-2 gap-3">
                       {ROLE_OPTIONS.map((option) => {
@@ -292,14 +394,14 @@ export default function LoginPage() {
                             key={option.value}
                             type="button"
                             onClick={() => setRole(option.value)}
-                            className={`flex flex-col items-center rounded-lg border p-4 min-h-[140px] transition-smooth ${
+                            className={`flex flex-col items-center rounded-lg border p-3.5 transition-smooth ${
                               isSelected
-                                ? 'border-indigo bg-[#EAF4FF] text-[#021861] shadow-[0_0_15px_rgba(63,81,181,0.15)]'
+                                ? 'border-indigo bg-[#EAF4FF] text-[#021861] shadow-[0_0_15px_rgba(63,81,181,0.15)] ring-1 ring-indigo'
                                 : 'border-[#DCE6F2] bg-[#FFFFFF] text-[#101C3A] hover:border-indigo/50 hover:bg-[#F5F7FC]'
                             }`}
                           >
-                            <Icon className={`h-5 w-5 mb-3 ${isSelected ? 'text-[#021861]' : 'text-[#647794]'}`} />
-                            <div className="flex flex-col items-center space-y-2 w-full text-center">
+                            <Icon className={`h-5 w-5 mb-2 ${isSelected ? 'text-[#021861]' : 'text-[#647794]'}`} />
+                            <div className="flex flex-col items-center space-y-1 w-full text-center">
                               <span className="block text-sm font-semibold leading-tight">{option.label}</span>
                               <span className="block text-[10px] text-[#647794] leading-tight">{option.desc[0]}</span>
                             </div>
@@ -309,10 +411,49 @@ export default function LoginPage() {
                     </div>
                   </div>
 
+                  {/* Room & Block (Registration + Student only) */}
+                  {mode === 'register' && role === 'student' && (
+                    <div className="grid grid-cols-2 gap-3 pt-1">
+                      <div>
+                        <label className="block text-xs font-semibold text-[#101C3A] mb-1">
+                          Room Number
+                        </label>
+                        <div className="relative">
+                          <Home className="absolute left-3 top-1/2 -mt-2 h-4 w-4 text-[#647794]" />
+                          <input
+                            id="roomNumber"
+                            type="text"
+                            value={roomNumber}
+                            onChange={(e) => setRoomNumber(e.target.value)}
+                            placeholder="e.g. B-304"
+                            className="block w-full rounded-lg border border-[#DCE6F2] py-2.5 pl-9 pr-3 text-sm text-[#101C3A] transition-smooth focus:border-indigo focus:ring-1 focus:ring-indigo focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-[#101C3A] mb-1">
+                          Hostel / Block
+                        </label>
+                        <select
+                          id="blockName"
+                          value={blockName}
+                          onChange={(e) => setBlockName(e.target.value)}
+                          className="block w-full rounded-lg border border-[#DCE6F2] py-2.5 px-3 text-sm text-[#101C3A] bg-white transition-smooth focus:border-indigo focus:ring-1 focus:ring-indigo focus:outline-none"
+                        >
+                          <option value="Block B (Aryabhatta Hall)">Block B (Aryabhatta Hall)</option>
+                          <option value="Block G (Gargi Hall)">Block G (Gargi Hall)</option>
+                          <option value="Block C (Ramanujan Hall)">Block C (Ramanujan Hall)</option>
+                          <option value="Block D (Tagore Hall)">Block D (Tagore Hall)</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Submit Button */}
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`inline-flex w-full items-center justify-center space-x-2 rounded-xl py-4 px-6 text-sm font-bold transition-smooth disabled:opacity-60 disabled:cursor-not-allowed ${
+                    className={`inline-flex w-full items-center justify-center space-x-2 rounded-xl py-3.5 px-6 text-sm font-bold transition-smooth disabled:opacity-60 disabled:cursor-not-allowed ${
                       loading
                         ? 'bg-[#647794] text-white'
                         : 'bg-[#021861] text-white hover:bg-indigo focus:outline-none focus:ring-2 focus:ring-indigo focus:ring-offset-2'
@@ -321,7 +462,12 @@ export default function LoginPage() {
                     {loading ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Signing in\u2026</span>
+                        <span>{mode === 'register' ? 'Creating account…' : 'Signing in…'}</span>
+                      </>
+                    ) : mode === 'register' ? (
+                      <>
+                        <UserPlus className="h-4 w-4" />
+                        <span>Register Account</span>
                       </>
                     ) : (
                       <>
@@ -332,9 +478,36 @@ export default function LoginPage() {
                   </button>
                 </form>
 
-                <div className="border-t border-[#DCE6F2] pt-6">
+                {/* Bottom Toggle */}
+                <div className="border-t border-[#DCE6F2] pt-4 text-center">
+                  {mode === 'login' ? (
+                    <p className="text-xs text-[#647794]">
+                      Don&apos;t have an account yet?{' '}
+                      <button
+                        type="button"
+                        onClick={() => handleModeSwitch('register')}
+                        className="font-semibold text-indigo hover:text-indigo-light underline underline-offset-2 transition-colors"
+                      >
+                        Register here
+                      </button>
+                    </p>
+                  ) : (
+                    <p className="text-xs text-[#647794]">
+                      Already have an account?{' '}
+                      <button
+                        type="button"
+                        onClick={() => handleModeSwitch('login')}
+                        className="font-semibold text-indigo hover:text-indigo-light underline underline-offset-2 transition-colors"
+                      >
+                        Sign in instead
+                      </button>
+                    </p>
+                  )}
+                </div>
+
+                <div className="pt-2">
                   <p className="text-[10px] text-[#647794] text-center tracking-wide uppercase">
-                    Demo session &mdash; clears on tab close
+                    Institutional single sign-on &bull; Kalasalingam Academy
                   </p>
                 </div>
               </div>
@@ -349,7 +522,7 @@ export default function LoginPage() {
             HostelIQ AI &mdash; Academic Demonstration Portal for Kalasalingam Academy of Research and Education
           </p>
           <p className="text-xs text-[#647794] mt-1">
-            Accepts any valid email and password (8+ characters). Not for production use.
+            Institutional email required (<strong>@klu.ac.in</strong>) for resident students and administrators. Minimum password 8 characters.
           </p>
         </div>
       </footer>

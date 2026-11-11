@@ -60,7 +60,7 @@ def setup_mongodb():
         {
             "_key": "admin_1",
             "id": "a0000000-0000-0000-0000-000000000001",
-            "email": "warden@university.edu",
+            "email": "warden@klu.ac.in",
             "full_name": "Prof. Arthur Pendelton (Chief Warden)",
             "role": "admin",
             "room_number": "Office-101",
@@ -71,7 +71,7 @@ def setup_mongodb():
         {
             "_key": "student_1",
             "id": "s0000000-0000-0000-0000-000000000001",
-            "email": "rohan.sharma@student.edu",
+            "email": "rohan.sharma@klu.ac.in",
             "full_name": "Rohan Sharma",
             "role": "student",
             "room_number": "B-304",
@@ -82,7 +82,7 @@ def setup_mongodb():
         {
             "_key": "student_2",
             "id": "s0000000-0000-0000-0000-000000000002",
-            "email": "ananya.iyer@student.edu",
+            "email": "ananya.iyer@klu.ac.in",
             "full_name": "Ananya Iyer",
             "role": "student",
             "room_number": "G-112",

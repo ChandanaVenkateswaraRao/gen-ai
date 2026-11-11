@@ -155,34 +155,65 @@ class TestHostelIQAI(unittest.TestCase):
         self.assertIn("content", chunks[0])
 
     def test_11_authentication_flow(self):
-        # 1. Valid Student Login
+        # 1. Valid Student Login with @klu.ac.in
         student_login = self.client.post("/api/auth/login", json={
-            "email": "rohan.sharma@student.edu",
+            "email": "rohan.sharma@klu.ac.in",
             "password": "student123"
         })
         self.assertEqual(student_login.status_code, 200)
         self.assertEqual(student_login.json()["role"], "student")
         self.assertEqual(student_login.json()["id"], "s0000000-0000-0000-0000-000000000001")
 
-        # 2. Valid Admin Login
+        # 2. Valid Admin Login with @klu.ac.in
         admin_login = self.client.post("/api/auth/login", json={
-            "email": "warden@university.edu",
+            "email": "warden@klu.ac.in",
             "password": "admin123"
         })
         self.assertEqual(admin_login.status_code, 200)
         self.assertEqual(admin_login.json()["role"], "admin")
         self.assertEqual(admin_login.json()["id"], "a0000000-0000-0000-0000-000000000001")
 
-        # 3. Invalid Password Rejection (401)
+        # 3. Non-klu.ac.in domain rejection (HTTP 400)
+        non_klu = self.client.post("/api/auth/login", json={
+            "email": "student@gmail.com",
+            "password": "password123"
+        })
+        self.assertEqual(non_klu.status_code, 400)
+        self.assertIn("klu.ac.in", non_klu.json()["detail"])
+
+        # 4. User Registration with @klu.ac.in (HTTP 201)
+        reg_payload = {
+            "email": "test.resident@klu.ac.in",
+            "password": "residentpassword123",
+            "full_name": "Test Resident",
+            "role": "student",
+            "room_number": "D-204",
+            "block_name": "Block D"
+        }
+        reg_res = self.client.post("/api/auth/register", json=reg_payload)
+        self.assertIn(reg_res.status_code, [201, 409])
+        if reg_res.status_code == 201:
+            self.assertEqual(reg_res.json()["email"], "test.resident@klu.ac.in")
+
+        # 5. Non-klu.ac.in registration rejection (HTTP 400)
+        bad_reg = self.client.post("/api/auth/register", json={
+            "email": "baduser@yahoo.com",
+            "password": "password123",
+            "full_name": "Bad User",
+            "role": "student"
+        })
+        self.assertEqual(bad_reg.status_code, 400)
+
+        # 6. Invalid Password Rejection (401)
         invalid_login = self.client.post("/api/auth/login", json={
-            "email": "warden@university.edu",
+            "email": "warden@klu.ac.in",
             "password": "wrong_password"
         })
         self.assertEqual(invalid_login.status_code, 401)
 
-        # 4. Unknown Account Rejection (401)
+        # 7. Unknown Account with @klu.ac.in Rejection (401)
         unknown_login = self.client.post("/api/auth/login", json={
-            "email": "unknown@fake.edu",
+            "email": "unknown.person@klu.ac.in",
             "password": "password123"
         })
         self.assertEqual(unknown_login.status_code, 401)

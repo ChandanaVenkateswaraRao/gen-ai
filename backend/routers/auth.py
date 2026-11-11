@@ -3,7 +3,8 @@ import uuid
 import re
 from fastapi import APIRouter, Header, HTTPException, Depends
 from typing import Optional
-from models.schemas import UserBase, UserLoginRequest
+from datetime import datetime, timezone
+from models.schemas import UserBase, UserLoginRequest, UserRegisterRequest
 from services.db import db_service
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -11,6 +12,12 @@ router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 
 CREDENTIALS_STORE = {
+    "warden@klu.ac.in": ("admin_1", "admin123"),
+    "admin@klu.ac.in": ("admin_1", "admin123"),
+    "rohan.sharma@klu.ac.in": ("student_1", "student123"),
+    "student@klu.ac.in": ("student_1", "student123"),
+    "ananya.iyer@klu.ac.in": ("student_2", "student123"),
+    # Legacy aliases
     "warden@university.edu": ("admin_1", "admin123"),
     "admin@university.edu": ("admin_1", "admin123"),
     "warden": ("admin_1", "admin123"),
@@ -60,6 +67,15 @@ def login(req: UserLoginRequest):
     if not EMAIL_REGEX.match(identifier):
         raise HTTPException(status_code=400, detail="Please enter a valid email address.")
 
+    norm = identifier.lower().strip()
+
+    # Enforce @klu.ac.in domain constraint
+    if not norm.endswith("@klu.ac.in") and norm not in CREDENTIALS_STORE:
+        raise HTTPException(
+            status_code=400,
+            detail="Institutional email required. Email must end with @klu.ac.in"
+        )
+
     # Validate password
     if not provided_password:
         raise HTTPException(status_code=400, detail="Password is required.")
@@ -67,7 +83,6 @@ def login(req: UserLoginRequest):
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters long.")
 
     # Check MongoDB users collection first
-    norm = identifier.lower()
     user_doc = None
     if db_service.db is not None:
         try:
@@ -137,6 +152,85 @@ def login(req: UserLoginRequest):
         status_code=401,
         detail="Invalid institutional credentials. Please check your email/identifier and password."
     )
+
+@router.post("/register", response_model=UserBase, status_code=201)
+def register(req: UserRegisterRequest):
+    email = (req.email or "").strip().lower()
+    password = req.password or ""
+    full_name = (req.full_name or "").strip()
+    requested_role = (req.role or "student").strip().lower()
+    role = "admin" if requested_role == "admin" else "student"
+    room_number = (req.room_number or "").strip()
+    block_name = (req.block_name or "").strip()
+
+    # 1. Validate email format & @klu.ac.in constraint
+    if not email:
+        raise HTTPException(status_code=400, detail="Email address is required.")
+    if not EMAIL_REGEX.match(email):
+        raise HTTPException(status_code=400, detail="Please enter a valid email address.")
+    if not email.endswith("@klu.ac.in"):
+        raise HTTPException(
+            status_code=400,
+            detail="Institutional email required. Email must end with @klu.ac.in"
+        )
+
+    # 2. Validate password
+    if not password:
+        raise HTTPException(status_code=400, detail="Password is required.")
+    if len(password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters long.")
+
+    # 3. Validate full name
+    if not full_name:
+        raise HTTPException(status_code=400, detail="Full name is required.")
+
+    # 4. Check if user already exists
+    if db_service.db is not None:
+        existing = db_service.db["users"].find_one({
+            "email": {"$regex": f"^{re.escape(email)}$", "$options": "i"}
+        })
+        if existing:
+            raise HTTPException(
+                status_code=409,
+                detail="An account with this email address already exists. Please sign in instead."
+            )
+    else:
+        for u in db_service.users.values():
+            if u.email.lower() == email:
+                raise HTTPException(
+                    status_code=409,
+                    detail="An account with this email address already exists. Please sign in instead."
+                )
+
+    # 5. Create new user document
+    new_id = str(uuid.uuid4())
+    now_iso = datetime.now(timezone.utc).isoformat()
+    user_doc = {
+        "id": new_id,
+        "email": email,
+        "full_name": full_name,
+        "role": role,
+        "room_number": room_number or ("Unassigned" if role == "student" else "Administrative Office"),
+        "block_name": block_name or ("Hostel Block" if role == "student" else "Administrative Block"),
+        "password": password,
+        "created_at": now_iso
+    }
+
+    if db_service.db is not None:
+        db_service.db["users"].insert_one(user_doc)
+
+    created_user = UserBase(
+        id=new_id,
+        email=email,
+        full_name=full_name,
+        role=role,  # type: ignore
+        room_number=user_doc["room_number"],
+        block_name=user_doc["block_name"]
+    )
+    db_service.users[new_id] = created_user
+    db_service.log_audit("user_registered", {"email": email, "role": role})
+
+    return created_user
 
 @router.get("/me", response_model=UserBase)
 def get_me(user: UserBase = Depends(get_current_user)):

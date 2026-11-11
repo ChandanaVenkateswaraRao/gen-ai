@@ -12,6 +12,14 @@ interface AppContextType {
   isLoadingAuth: boolean;
   isDemo: boolean;
   login: (email: string, password?: string, role?: 'student' | 'admin') => Promise<User>;
+  register: (data: {
+    email: string;
+    password: string;
+    full_name: string;
+    role: 'student' | 'admin';
+    room_number?: string;
+    block_name?: string;
+  }) => Promise<User>;
   logout: () => void;
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (open: boolean) => void;
@@ -62,6 +70,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return user;
   };
 
+  const register = async (data: {
+    email: string;
+    password: string;
+    full_name: string;
+    role: 'student' | 'admin';
+    room_number?: string;
+    block_name?: string;
+  }): Promise<User> => {
+    const user = await api.register(data);
+    setCurrentUser(user);
+    api.setActiveUser(user.id);
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ id: user.id, email: user.email, full_name: user.full_name, role: user.role }));
+    } catch (e) {
+      console.error('Failed to save session:', e);
+    }
+    return user;
+  };
+
   const logout = () => {
     setCurrentUser(null);
     api.setActiveUser('');
@@ -92,6 +119,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         isLoadingAuth,
         isDemo,
         login,
+        register,
         logout,
         mobileMenuOpen,
         setMobileMenuOpen,

@@ -60,6 +60,20 @@ class ApiClient {
     });
   }
 
+  async register(data: {
+    email: string;
+    password: string;
+    full_name: string;
+    role: 'student' | 'admin';
+    room_number?: string;
+    block_name?: string;
+  }): Promise<User> {
+    return this.request<User>('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async getAccounts(): Promise<User[]> {
     return this.request<User[]>('/api/auth/accounts');
   }

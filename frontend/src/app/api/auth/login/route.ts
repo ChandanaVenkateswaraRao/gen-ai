@@ -23,6 +23,12 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    if (!email.toLowerCase().endsWith('@klu.ac.in')) {
+      return NextResponse.json(
+        { detail: 'Institutional email required. Both residents and admins must log in with an @klu.ac.in email address.' },
+        { status: 400 }
+      );
+    }
 
     // Validate password presence and minimum length
     if (!password) {
