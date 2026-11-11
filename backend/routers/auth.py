@@ -89,9 +89,16 @@ def login(req: UserLoginRequest):
         if expected_password:
             if provided_password == expected_password:
                 user_copy = dict(user_doc)
-                user_copy.pop("_id", None)
+                _mongo_id = str(user_copy.pop("_id", ""))
                 user_copy.pop("_key", None)
                 user_copy.pop("password", None)
+                if not user_copy.get("id"):
+                    user_copy["id"] = _mongo_id or str(uuid.uuid4())
+                if not user_copy.get("full_name"):
+                    local_part = norm.split("@")[0]
+                    user_copy["full_name"] = local_part.replace(".", " ").title()
+                if user_copy.get("role") not in ["student", "admin"]:
+                    user_copy["role"] = requested_role if requested_role in ["student", "admin"] else "student"
                 return UserBase(**user_copy)
             else:
                 raise HTTPException(
