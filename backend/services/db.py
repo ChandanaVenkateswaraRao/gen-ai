@@ -322,30 +322,33 @@ class DatabaseService:
     def _init_defaults(self):
         # 1. Users
         if len(self.users) == 0:
-            self.users["admin_1"] = UserBase(
-                id="a0000000-0000-0000-0000-000000000001",
-                email="warden@university.edu",
-                full_name="Prof. Arthur Pendelton (Chief Warden)",
-                role="admin",
-                room_number="Office-101",
-                block_name="Administrative Block"
-            )
-            self.users["student_1"] = UserBase(
-                id="s0000000-0000-0000-0000-000000000001",
-                email="rohan.sharma@student.edu",
-                full_name="Rohan Sharma",
-                role="student",
-                room_number="B-304",
-                block_name="Block B (Aryabhatta Hall)"
-            )
-            self.users["student_2"] = UserBase(
-                id="s0000000-0000-0000-0000-000000000002",
-                email="ananya.iyer@student.edu",
-                full_name="Ananya Iyer",
-                role="student",
-                room_number="G-112",
-                block_name="Block G (Gargi Hall)"
-            )
+            self.users["admin_1"] = {
+                "id": "a0000000-0000-0000-0000-000000000001",
+                "email": "warden@university.edu",
+                "full_name": "Prof. Arthur Pendelton (Chief Warden)",
+                "role": "admin",
+                "room_number": "Office-101",
+                "block_name": "Administrative Block",
+                "password": "admin123"
+            }
+            self.users["student_1"] = {
+                "id": "s0000000-0000-0000-0000-000000000001",
+                "email": "rohan.sharma@student.edu",
+                "full_name": "Rohan Sharma",
+                "role": "student",
+                "room_number": "B-304",
+                "block_name": "Block B (Aryabhatta Hall)",
+                "password": "student123"
+            }
+            self.users["student_2"] = {
+                "id": "s0000000-0000-0000-0000-000000000002",
+                "email": "ananya.iyer@student.edu",
+                "full_name": "Ananya Iyer",
+                "role": "student",
+                "room_number": "G-112",
+                "block_name": "Block G (Gargi Hall)",
+                "password": "student123"
+            }
 
         # 2. Approved Documents
         if len(self.documents) == 0:

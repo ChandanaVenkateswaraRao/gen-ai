@@ -65,6 +65,7 @@ def setup_mongodb():
             "role": "admin",
             "room_number": "Office-101",
             "block_name": "Administrative Block",
+            "password": "admin123",
             "created_at": datetime(2026, 1, 1, 0, 0, tzinfo=timezone.utc).isoformat()
         },
         {
@@ -75,6 +76,7 @@ def setup_mongodb():
             "role": "student",
             "room_number": "B-304",
             "block_name": "Block B (Aryabhatta Hall)",
+            "password": "student123",
             "created_at": datetime(2026, 1, 1, 0, 0, tzinfo=timezone.utc).isoformat()
         },
         {
@@ -85,6 +87,7 @@ def setup_mongodb():
             "role": "student",
             "room_number": "G-112",
             "block_name": "Block G (Gargi Hall)",
+            "password": "student123",
             "created_at": datetime(2026, 1, 1, 0, 0, tzinfo=timezone.utc).isoformat()
         }
     ]

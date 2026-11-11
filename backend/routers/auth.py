@@ -66,8 +66,40 @@ def login(req: UserLoginRequest):
     if len(provided_password) < 8:
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters long.")
 
-    # Check against known institutional accounts first
+    # Check MongoDB users collection first
     norm = identifier.lower()
+    user_doc = None
+    if db_service.db is not None:
+        try:
+            user_doc = db_service.db["users"].find_one({
+                "$or": [
+                    {"email": {"$regex": f"^{re.escape(norm)}$", "$options": "i"}},
+                    {"id": norm},
+                    {"_key": norm}
+                ]
+            })
+        except Exception:
+            user_doc = None
+
+    if user_doc:
+        expected_password = user_doc.get("password")
+        if not expected_password and norm in CREDENTIALS_STORE:
+            expected_password = CREDENTIALS_STORE[norm][1]
+
+        if expected_password:
+            if provided_password == expected_password:
+                user_copy = dict(user_doc)
+                user_copy.pop("_id", None)
+                user_copy.pop("_key", None)
+                user_copy.pop("password", None)
+                return UserBase(**user_copy)
+            else:
+                raise HTTPException(
+                    status_code=401,
+                    detail="Invalid institutional credentials. Please check your email/identifier and password."
+                )
+
+    # Fallback to in-memory CREDENTIALS_STORE
     if norm in CREDENTIALS_STORE:
         user_key, valid_password = CREDENTIALS_STORE[norm]
         if provided_password == valid_password:
