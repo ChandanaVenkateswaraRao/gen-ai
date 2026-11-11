@@ -216,9 +216,6 @@ def register(req: UserRegisterRequest):
         "created_at": now_iso
     }
 
-    if db_service.db is not None:
-        db_service.db["users"].insert_one(user_doc)
-
     created_user = UserBase(
         id=new_id,
         email=email,
@@ -227,7 +224,14 @@ def register(req: UserRegisterRequest):
         room_number=user_doc["room_number"],
         block_name=user_doc["block_name"]
     )
-    db_service.users[new_id] = created_user
+
+    if db_service.db is not None:
+        db_service.db["users"].insert_one(user_doc)
+        db_service.users._memory_cache[new_id] = created_user
+    else:
+        db_service.users[new_id] = created_user
+
+    CREDENTIALS_STORE[email] = (new_id, password)
     db_service.log_audit("user_registered", {"email": email, "role": role})
 
     return created_user

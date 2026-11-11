@@ -78,9 +78,9 @@ class MongoCollectionDict(Generic[T]):
         if self.collection is not None:
             try:
                 doc = self._to_doc(value, key)
-                self.collection.replace_one(
+                self.collection.update_one(
                     {"$or": [{self.key_field: key}, {"_key": key}]},
-                    doc,
+                    {"$set": doc},
                     upsert=True
                 )
             except Exception as e:
